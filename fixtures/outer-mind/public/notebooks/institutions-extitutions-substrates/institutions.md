@@ -1,10 +1,20 @@
 ---
 type: section
-title: "Institutions"
+title: "Institution"
 slug: institutions
 date: 2026-09-01
-summary: "Stable, deterministic forms bounded in the actual."
+summary: "A settled form that holds things in place: stable, deterministic, subjective."
 notebook: institutions-extitutions-substrates
 ---
 
-An institution holds its shape by closing itself off. It is a mind that has stopped learning in some direction.
+- Stable
+- Deterministic
+- Subjective
+
+*Production bounded in the Actual*
+
+**Plain language:** A settled form that holds things in place — clear roles, rules, and outcomes that stay predictable and bounded.
+
+> “You will be organized, you will be an organism, you will articulate your body… you will be a subject, nailed down as one.”
+>
+> — Gilles Deleuze

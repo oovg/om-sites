@@ -114,3 +114,30 @@
   --ed-cover-muted: #9c9688;
   --ed-cover-rule: #2c2a26;
 }
+
+/* ---------------------------------------------------------------- notebooks (om-ies.vercel.app)
+ * From om-ies/index.html :root and its rules.
+ */
+:root[data-site='notebooks'] {
+  color-scheme: dark;
+  --bg: #0a1628;
+  --bg-deep: #071120;
+  --grid: rgba(125, 211, 232, 0.055);
+  --grid-strong: rgba(125, 211, 232, 0.12);
+  --line: #cdd9e5;
+  --line-dim: rgba(205, 217, 229, 0.42);
+  --line-faint: rgba(205, 217, 229, 0.22);
+  --cyan: #7dd3e8;
+  --red: #e85c4f;
+  --green: #5cb87a;
+  --blue: #5c9fe8;
+  --paper: #e8edf2;
+  --muted: #8fa3b8;
+  --grid-size: 44px;
+
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --text-col: 720px;
+  --wide-col: 1100px;
+  --narrow: 980px;
+}

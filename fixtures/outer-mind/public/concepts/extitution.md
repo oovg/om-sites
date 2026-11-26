@@ -2,10 +2,15 @@
 type: concept
 title: "Extitution"
 slug: extitution
-date: 2026-03-04
-summary: "A meta-stable arrangement that holds enough shape to act while staying open enough to change."
+date: 2026-09-01
+summary: "An open mind: process that individuates, differentiates, and opens capacities of becoming."
+aliases:
+  - "Extitutions"
 related:
+  - "institution"
   - "substrate"
+sources:
+  - "institutions-extitutions-substrates"
 ---
 
-Between the closed institution and the open substrate, the extitution.
+An open mind: process that individuates, differentiates, and opens capacities of becoming.

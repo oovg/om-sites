@@ -74,3 +74,13 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - Media entries now mirror the old shop's catalog (titles, subtitles, authors, descriptions, abstracts, dates and its 2:3 covers). Because one `cover` and one `date` serve both sites, the hub's Media rail shows the shop covers in shop date order, and shop titles ("Ethereum Localism", "Ethereum - Earth Computer") instead of the old hub's hand-written ones.
 - Real EPUB and Markdown files for Friends of the Outside and Ethereum Localism; placeholder PDFs where the real ones are too large (Ethereum Localism 13 MB, Earth Computer 33 MB).
 - `on-edition`: sparse edge case (no cover, author, subtitle or licence; Markdown only).
+
+## Notebooks (from om-ies)
+
+- **One template for every notebook** (decided by vengi, 2026-11-26). The old site was a single hand-built page for the IES framework; its interactive diagram (SVG spine, plain-language toggles, side quotes, animated footer figures) and the coloured words in its title are not reproduced. Room for a bespoke layout later: `sites/notebooks/src/bespoke/index.ts` maps a notebook slug to a component, kept in code so entries carry no layout hints.
+- **Kept from om-ies:** colours, grid background, Space Grotesk + IBM Plex Mono (now self-hosted via @fontsource), the hero (eyebrow, title, italic summary, animated "SCROLL ↓"), the glossary rows and two-column list, the dark footer band and the "built with <3" credit (now with the hub's name).
+- **New, using the same type styles:** the shared header (hub link, Frameworks, Notebooks — under "More" past four — and Glossary; a no-JS `<details>` menu under 980px), the text column, the numbered contents list, sections, "Concepts in this notebook" (full width, as the old glossary), the index page and `/glossary` (aliases, related concepts, the notebooks that use each one).
+- **No client JS.** The old reveal-on-scroll animations and toggles are gone with the diagram.
+- **URLs:** the old site's `/` was the IES page; now `/` is the index and the framework is at `/<slug>`.
+- **Gate:** `packages/content/gate.ts` runs the site's dev/build/preview only when the outer mind has a notebook; a skipped build removes `dist/notebooks`.
+- **Fixture:** the IES text from the old page as a notebook (main text + Institution, Extitution, Substrate, Relations sections, quotes, the two SVG figures) and its 16 glossary terms as concepts.

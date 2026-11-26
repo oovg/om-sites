@@ -109,6 +109,24 @@ importers:
         specifier: ^0.35.5
         version: 0.35.5(@types/node@22.20.7)
 
+  sites/notebooks:
+    dependencies:
+      '@fontsource/ibm-plex-mono':
+        specifier: ^5.2.0
+        version: 5.3.0
+      '@fontsource/space-grotesk':
+        specifier: ^5.2.0
+        version: 5.3.0
+      '@om/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@om/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      astro:
+        specifier: ^5.16.0
+        version: 5.18.2(@types/node@22.20.7)(rollup@4.68.8)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+
 packages:
 
   '@astrojs/compiler@2.13.1':
@@ -620,11 +638,17 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@fontsource/ibm-plex-mono@5.3.0':
+    resolution: {integrity: sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q==}
+
   '@fontsource/instrument-sans@5.3.0':
     resolution: {integrity: sha512-QwXc4hb/px3XvSPS2CPAOgey8nyrQFxgxrmXQQ+pN+P51hKdAcchxpg8rSbjANFfPu6VKXhDqkVDucXMZ9CM5g==}
 
   '@fontsource/newsreader@5.3.0':
     resolution: {integrity: sha512-AFR6ZKY89GNL+9qBI2P2+66NhD5bhOj/v6fsLnFYLM4E0JnMB1yKb+Ro8cA64i1hwAWoBfTq5CHJGWH1toLDkw==}
+
+  '@fontsource/space-grotesk@5.3.0':
+    resolution: {integrity: sha512-ksnGizDPXIDuvqcTYTSrmZ+evx9sDlS8rp7+42BQ7wU+spt3twEoXfbJz672C+5CLg6VeUQwRy5RXshWb67LcQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2409,9 +2433,13 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
+  '@fontsource/ibm-plex-mono@5.3.0': {}
+
   '@fontsource/instrument-sans@5.3.0': {}
 
   '@fontsource/newsreader@5.3.0': {}
+
+  '@fontsource/space-grotesk@5.3.0': {}
 
   '@img/colour@1.1.0': {}
 

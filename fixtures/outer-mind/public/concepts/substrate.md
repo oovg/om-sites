@@ -2,14 +2,15 @@
 type: concept
 title: "Substrate"
 slug: substrate
-date: 2026-03-04
-summary: "The unstable, processual field of virtual potential beneath organized forms."
+date: 2026-09-01
+summary: "The material and intensive ground from which institutions and extitutions arise and into which they return."
 aliases:
   - "Substrates"
 related:
+  - "institution"
   - "extitution"
 sources:
   - "institutions-extitutions-substrates"
 ---
 
-A substrate is what an organization grows out of and falls back into.
+The material and intensive ground from which institutions and extitutions arise and into which they return.
