@@ -54,7 +54,7 @@ const firstCopy = !hasHero ? rest[0] : undefined
         </div>
       )}
     </div>
-    <div class="what-we-do" id="what-we-do">
+    <div class:list={['what-we-do', { 'what-we-do--always': !heroImages[1] }]} id="what-we-do">
       <h2 class="h">What we do</h2>
       <Fragment set:html={html(heroText)} />
     </div>

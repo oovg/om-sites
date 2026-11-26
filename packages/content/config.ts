@@ -3,8 +3,20 @@ import { homedir } from 'node:os'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** Root of the om-sites workspace. */
-export const WORKSPACE = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
+/** Root of the om-sites workspace: the nearest folder with pnpm-workspace.yaml, from the cwd or this file. */
+function findWorkspace(): string {
+  for (const start of [process.cwd(), dirname(fileURLToPath(import.meta.url))]) {
+    let dir = start
+    while (true) {
+      if (existsSync(join(dir, 'pnpm-workspace.yaml'))) return dir
+      const up = dirname(dir)
+      if (up === dir) break
+      dir = up
+    }
+  }
+  return process.cwd()
+}
+export const WORKSPACE = findWorkspace()
 
 function readDotEnv(): Record<string, string> {
   const file = join(WORKSPACE, '.env')

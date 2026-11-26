@@ -546,3 +546,8 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
 .markdown img { margin: 25px 0; }
 .markdown [id^='cite-'] { scroll-margin-top: 6rem; }
 .markdown a:hover { text-decoration: underline; }
+
+/* Item lists inside the two-column home sections take the full right column. */
+.sb-right .q-right { width: 100%; }
+/* With no second hero image there is nothing to lay the text over: show the text block at every width. */
+@media (min-width: 48em) { .what-we-do--always { display: flex; } }
