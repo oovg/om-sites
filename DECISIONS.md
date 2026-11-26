@@ -44,3 +44,33 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - Images copied from the hub repo, downscaled to 1600px; large opaque PNGs converted to JPEG (quality 82), PNGs with transparency kept. Large PDFs (Assembly poster, Inverted City) replaced by small typst placeholders; Friends of the Outside and Undercapital PDFs are the real ones.
 - Old post dates use the date the old site displayed (it converted midnight UTC to local time).
 - `toward-a-nomad-web`: `<strong id="cite-N">` anchors became plain bold (no HTML allowed in entries).
+
+## Mediashop (from om-mediashop)
+
+- **Fonts:** Instrument Sans and Newsreader (OFL), self-hosted. Pages use `@fontsource` woff2 files bundled at build. Typst needs TTF, so `packages/ui/fonts/mediashop/*.ttf` were converted once from the fontsource woff2 files with fonttools (licences alongside). Typst names Newsreader "Newsreader 16pt 16pt".
+- **Styles:** Tailwind v4 utilities converted to plain CSS with the same values (`sites/mediashop/src/styles/mediashop.css`); colours and type in `packages/ui/tokens.css`.
+- **Client JS:** only the old behaviours: mobile Menu/Close toggle, the OPDS/RSS copy buttons, and the donation popup before a download (without JS, downloads work directly).
+- **Catalog** at `/index.json` (the old path), in the old shape: `alternate` "View in Browser" link, one open-access acquisition link per file with `indirectAcquisition`, `images` with real width and height. **`/shop.json`** (PROTOCOL.md §3) is new, generated from `site.md`. RSS follows PROTOCOL.md §7 (description is the summary, else the subtitle).
+- **Order:** newest first by `date`; the old list followed `index.json` order.
+- **Dates** are shown as entered; the old shop shifted midnight-UTC dates into local time (e.g. "July 6" for 2026-07-07).
+- **Language:** the content model has no language field; editions and the item page use `en` ("English").
+- **Card:** the old 2-column grid, plus the `descriptor` as one muted line under the author when set (decided by vengi, 2026-11-26).
+- **Item page:** adds a "Licence" row (entry `licence`, else `site.md`'s). The media entry's body is the longer text (old "abstract"), rendered as markdown. "View in Browser" goes to the hub page of the transmission or book.
+- **Covers:** an item without `cover` gets a generated typographic cover (instead of the old title-on-black placeholder).
+- **URLs:** item pages at `/media/<media slug>`, edition files at `/media/<slug>/<slug>.<ext>`, works' files at `/assets/<name>`. No redirects from the old `/media/<title slug>` or `/assets/<slug>.<ext>` URLs (decided by vengi, 2026-11-26).
+- **Donate:** the old x402 wallet flow needs server routes and stays on a separate server (decided by vengi, 2026-11-26). The shop's Donate links use `OM_SHOP_DONATE_URL`; until that is set they go to the hub's `/donate`. *URL pending.*
+
+## Editions
+
+- Built by `packages/content/editions.ts`: one markdown source per edition; EPUB 3 and Markdown with pandoc, PDF with pandoc + typst (A5). A book is one file per format: title page, introduction, a generated "Contents" list, then each essay as a chapter (its headings shifted down one level).
+- **Templates** in `packages/content/templates/` (EPUB CSS, typst header, cover). Their colours and fonts are the `--ed-*` tokens in `packages/ui/tokens.css` (new values: the old shop's files were made by hand). Embedded fonts in EPUBs.
+- **Cache:** `.cache/editions/<slug>-<hash>/`, keyed by the entries, the referenced asset files, the templates, the tokens, the fonts, `editions.ts` itself and the pandoc/typst versions. `OM_EDITIONS_CACHE` moves it.
+- **Deterministic:** `SOURCE_DATE_EPOCH` is set from the piece's date, so two builds give byte-identical files (checked).
+- **Offline:** remote images in entries become links in editions (pandoc would otherwise fetch them). Pandoc's citation syntax is off (`markdown-citations`), so a bare `@name` in a URL stays text. Links to in-page anchors that don't exist become plain text (`anchors.lua`; typst refuses dangling labels).
+- **Generated covers:** laid out in typst (title, subtitle, author, the hub's name), exported as SVG, rendered to a 1600 × 2400 PNG with sharp.
+
+## Fixture (mediashop)
+
+- Media entries now mirror the old shop's catalog (titles, subtitles, authors, descriptions, abstracts, dates and its 2:3 covers). Because one `cover` and one `date` serve both sites, the hub's Media rail shows the shop covers in shop date order, and shop titles ("Ethereum Localism", "Ethereum - Earth Computer") instead of the old hub's hand-written ones.
+- Real EPUB and Markdown files for Friends of the Outside and Ethereum Localism; placeholder PDFs where the real ones are too large (Ethereum Localism 13 MB, Earth Computer 33 MB).
+- `on-edition`: sparse edge case (no cover, author, subtitle or licence; Markdown only).

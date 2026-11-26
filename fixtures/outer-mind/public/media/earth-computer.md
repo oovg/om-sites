@@ -1,14 +1,14 @@
 ---
 type: media
-title: "Ethereum: The Earth Computer"
+title: "Ethereum - Earth Computer"
 slug: earth-computer
-date: 2026-11-06
-summary: "Poster by The Open Machine: Ethereum: The Earth Computer."
+date: 2023-07-28
+summary: "A Poster visualizing the assembly of Ethereum, the Earth Computer"
 author:
-  - "The Open Machine"
+  - "Exeunt & Ven Gist"
 role: "Research, Writing and Design"
 descriptor: "Poster"
-cover: assets/assembly_wall.jpg
+cover: assets/shop-assembly-cover.jpg
 files:
   pdf: assets/earth-computer.pdf
 licence: "CC BY-NC-SA 4.0"

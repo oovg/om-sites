@@ -2,15 +2,17 @@
 type: media
 title: "Friends of the Outside"
 slug: friends-of-the-outside
-date: 2026-11-03
-summary: "Booklet by The Open Machine: Friends of the Outside."
-subtitle: Control, Substrates, & the Afterlife of DAOs
+date: 2023-07-28
+summary: "Gonzo Philosophical booklet"
+subtitle: "Control, Substrates, and the Afterlife of DAOs"
 author:
-  - "The Open Machine"
+  - "Exeunt & Ven Gist"
 role: "Writing, Design, and Publishing"
 descriptor: "Booklet"
-cover: assets/FotO_physical-outside.jpg
+cover: assets/shop-friends-of-the-outside-cover.jpg
 files:
+  epub: assets/friends-of-the-outside.epub
   pdf: assets/friends-of-the-outside.pdf
+  md: assets/friends-of-the-outside.md
 licence: "CC BY-NC-SA 4.0"
 ---

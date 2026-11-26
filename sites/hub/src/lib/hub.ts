@@ -133,22 +133,4 @@ export const TYPE_LABEL: Record<string, string> = {
 /** Authors as "A, B". */
 export const authorLine = (e: Entry) => ((e.data as { author?: string[] }).author ?? []).join(', ')
 
-/** A collection's intro: its body without the table-of-contents heading and link-only lines. */
-export function collectionIntro(c: Entry<'collection'>): string {
-  const lines = c.body.split('\n')
-  const out: string[] = []
-  let skipping = false
-  for (const line of lines) {
-    if (/^#{1,6}\s+(table of )?contents\s*$/i.test(line)) {
-      skipping = true
-      continue
-    }
-    if (skipping && /^#{1,6}\s/.test(line)) skipping = false
-    const linkOnly = /^\s*(?:[-*+]\s+|\d+\.\s+)?\[\[[^\]]+\]\]\s*$/.test(line)
-    if (linkOnly) continue
-    if (skipping && line.trim()) skipping = false
-    out.push(line)
-  }
-  // drop a leading `# Title` that repeats the book's name
-  return out.join('\n').replace(/^\s*#\s+.*\n/, '')
-}
+export { collectionIntro } from '@om/content'

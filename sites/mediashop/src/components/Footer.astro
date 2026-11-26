@@ -1,0 +1,37 @@
+---
+import { siteBase } from '@om/content'
+import { hubTitle, hubUrl, om } from '../lib/shop'
+const base = siteBase(om(), 'mediashop')
+---
+<footer class="ftr">
+  <div class="container ftr-inner">
+    <div class="ftr-feeds">
+      <p>Add this catalog to an ereader or feed reader</p>
+      <div class="ftr-copy">
+        <button type="button" title="Copy the OPDS catalog URL" data-copy={`${base}/index.json`} data-label="OPDS">OPDS</button>
+        <span class="ftr-dot" aria-hidden="true">·</span>
+        <button type="button" title="Copy the RSS feed URL" data-copy={`${base}/rss.xml`} data-label="RSS">RSS</button>
+      </div>
+    </div>
+    <div class="ftr-bottom">
+      <a href={hubUrl()} target="_blank" rel="noopener noreferrer">{hubTitle()}</a>
+      <span>Media Shop</span>
+    </div>
+  </div>
+</footer>
+<script>
+  // Copy-to-clipboard links, as in the old CopyLink: "Copied" for 2 s, prompt as fallback.
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const url = b.dataset.copy!
+      try {
+        await navigator.clipboard.writeText(url)
+      } catch {
+        window.prompt('Copy this URL', url)
+        return
+      }
+      b.textContent = 'Copied'
+      setTimeout(() => (b.textContent = b.dataset.label!), 2000)
+    }),
+  )
+</script>

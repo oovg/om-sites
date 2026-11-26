@@ -63,3 +63,54 @@
     --burger-hover: rgba(0, 0, 0, 0.04);
   }
 }
+
+/* ---------------------------------------------------------------- mediashop (media.theopenmachine.net)
+ * From om-mediashop/src/app/globals.css and its Tailwind v4 utilities (default scale, sm 40rem, md 48rem, lg 64rem).
+ */
+:root[data-site='mediashop'] {
+  color-scheme: dark;
+  --background: #0e0d0c;
+  --foreground: #ece7dc;
+  --muted: #9c9688;
+  --border: #2c2a26;
+  --card: #161513;
+  --paper: #d8d0c0;
+  --scrim: rgba(0, 0, 0, 0.7);
+
+  --font-heading: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  --text-label: 0.7rem;
+  --text-dt: 0.65rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --tracking-tight: -0.025em;
+  --tracking-label: 0.2em;
+  --tracking-button: 0.18em;
+  --tracking-kicker: 0.28em;
+  --max-w: 64rem;
+}
+
+/*
+ * Editions (EPUB, PDF, generated covers). New: the old shop's files were made by hand.
+ * Read by packages/content/editions.ts; changing any value here regenerates every edition.
+ */
+:root {
+  --ed-ink: #1a1917;
+  --ed-paper: #ffffff;
+  --ed-muted: #6b665c;
+  --ed-rule: #d8d0c0;
+  --ed-font-heading: 'Instrument Sans';
+  --ed-font-body: 'Newsreader 16pt 16pt';
+  --ed-size-body: 11pt;
+  --ed-cover-bg: #0e0d0c;
+  --ed-cover-fg: #ece7dc;
+  --ed-cover-muted: #9c9688;
+  --ed-cover-rule: #2c2a26;
+}

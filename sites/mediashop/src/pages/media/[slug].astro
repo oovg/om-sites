@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro'
+import DownloadButtons from '../../components/DownloadButtons.astro'
+import { entriesOf, renderMarkdown } from '@om/content'
+import { items, LANGUAGES, longDate, om } from '../../lib/shop'
+
+export function getStaticPaths() {
+  return entriesOf(om(), 'media').map((m) => ({ params: { slug: m.slug } }))
+}
+const item = (await items()).find((i) => i.slug === Astro.params.slug)!
+const abstract = item.abstract && renderMarkdown(item.abstract, { om: om(), site: 'mediashop' })
+---
+<Base title={item.title} description={item.description ?? item.subtitle}>
+  <div class="container page">
+    <a href="/" class="label">← Catalog</a>
+    <div class="item">
+      <div class="item-cover">
+        {item.cover && <img src={item.cover.href} alt={`Cover of ${item.title}`} sizes="(min-width: 1024px) 18rem, 20rem" />}
+      </div>
+      <div>
+        <h1>{item.title}</h1>
+        {item.subtitle && <p class="item-sub">{item.subtitle}</p>}
+        <dl class="item-meta">
+          {item.author && <div><dt>Author</dt><dd>{item.author}</dd></div>}
+          <div><dt>Published</dt><dd>{longDate(item.date)}</dd></div>
+          <div><dt>Language</dt><dd>{LANGUAGES[item.language] ?? item.language}</dd></div>
+          {item.licence && <div><dt>Licence</dt><dd>{item.licence}</dd></div>}
+        </dl>
+        {item.description && <p class="item-text">{item.description}</p>}
+        {abstract && <div class="item-text" set:html={abstract} />}
+        {(item.files.length > 0 || item.readOnline) && (
+          <div class="item-acquire">
+            <h2 class="label">Acquire</h2>
+            <DownloadButtons files={item.files} readOnline={item.readOnline} />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</Base>

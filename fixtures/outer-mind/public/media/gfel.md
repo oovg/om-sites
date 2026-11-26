@@ -2,7 +2,7 @@
 type: media
 title: "GFEL"
 slug: gfel
-date: 2026-11-01
+date: 2024-04-12
 summary: "Poster by The Open Machine: GFEL."
 author:
   - "The Open Machine"

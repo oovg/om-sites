@@ -1,0 +1,33 @@
+---
+/**
+ * Dev-only style guide (/_styleguide): every kind of item the shop shows — a work, an edition, a book
+ * edition, one with a generated cover, one with every field and the sparsest — plus the item-page parts.
+ */
+import Base from '../layouts/Base.astro'
+import BookCard from '../components/BookCard.astro'
+import DownloadButtons from '../components/DownloadButtons.astro'
+import { items } from '../lib/shop'
+const all = await items()
+const pick = (label: string, f: (i: (typeof all)[number]) => boolean) => ({ label, item: all.find(f) })
+const samples = [
+  pick('Work (own files)', (i) => !i.edition),
+  pick('Edition of a transmission', (i) => i.edition?.source.type === 'transmission'),
+  pick('Edition of a book', (i) => i.edition?.source.type === 'collection'),
+  pick('Generated cover', (i) => Boolean(i.edition?.cover)),
+  pick('Most fields', (i) => Boolean(i.subtitle && i.descriptor && i.description)),
+  pick('Fewest fields', (i) => !i.subtitle && !i.descriptor),
+].filter((s) => s.item)
+const longest = [...all].sort((a, b) => b.title.length - a.title.length)[0]
+---
+<Base title="Style guide">
+  <div class="container page">
+    <h1 class="label">Style guide (dev only)</h1>
+    <ul class="grid" style="margin-top:2rem">
+      {samples.map((s) => <li><p class="label" style="margin-bottom:.5rem">{s.label}</p><BookCard item={s.item!} /></li>)}
+      {longest && <li><p class="label" style="margin-bottom:.5rem">Longest title</p><BookCard item={longest} /></li>}
+    </ul>
+    {samples[0]?.item && (
+      <div class="item-acquire"><h2 class="label">Acquire</h2><DownloadButtons files={samples[0].item.files} readOnline={samples[0].item.readOnline} /></div>
+    )}
+  </div>
+</Base>

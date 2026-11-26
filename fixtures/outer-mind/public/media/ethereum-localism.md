@@ -1,15 +1,18 @@
 ---
 type: media
-title: "Ethereum Localism: Grounding the Future of Coordination"
+title: "Ethereum Localism"
 slug: ethereum-localism
-date: 2026-11-05
-summary: "Book by The Open Machine: Ethereum Localism: Grounding the Future of Coordination."
+date: 2023-07-28
+summary: "A Collection of Essays on the Future of Coordination"
+subtitle: "Grounding the Future of Coordination"
 author:
-  - "The Open Machine"
+  - "Various Contributors"
 role: "Editing, Design, and Publishing"
 descriptor: "Book"
-cover: assets/EthLocalism_cover-on-table.jpg
+cover: assets/shop-ethereum-localism-cover.jpg
 files:
+  epub: assets/ethereum-localism.epub
   pdf: assets/ethereum-localism.pdf
+  md: assets/ethereum-localism.md
 licence: "CC BY-NC-SA 4.0"
 ---

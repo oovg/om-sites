@@ -2,5 +2,11 @@
   "name": "@om/ui",
   "private": true,
   "type": "module",
-  "exports": { "./*": "./*" }
+  "exports": {
+    "./*": "./*"
+  },
+  "dependencies": {
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@fontsource/newsreader": "^5.3.0"
+  }
 }

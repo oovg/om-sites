@@ -1,0 +1,21 @@
+---
+import type { ShopItem } from '@om/content'
+interface Props { item: ShopItem }
+const { item } = Astro.props
+const href = `/media/${item.slug}`
+---
+<article class="card">
+  <a href={href} class="card-cover">
+    <div class="cover">
+      {item.cover && <img src={item.cover.href} alt={`Cover of ${item.title}`} sizes="(min-width: 768px) 40vw, 90vw" />}
+    </div>
+  </a>
+  <div class="card-body">
+    <h2 class="card-title">{item.title}</h2>
+    {item.subtitle && <p class="card-sub">{item.subtitle}</p>}
+    {item.author && <p class="card-author">{item.author}</p>}
+    {item.descriptor && <p class="card-descriptor">{item.descriptor}</p>}
+    {item.description && <p class="card-desc">{item.description}</p>}
+    <a href={href} class="btn">View book</a>
+  </div>
+</article>

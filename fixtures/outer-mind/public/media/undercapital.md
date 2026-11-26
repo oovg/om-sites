@@ -2,7 +2,7 @@
 type: media
 title: "Undercapital"
 slug: undercapital
-date: 2026-11-02
+date: 2024-09-10
 summary: "Zine by The Open Machine: Undercapital."
 author:
   - "The Open Machine"
