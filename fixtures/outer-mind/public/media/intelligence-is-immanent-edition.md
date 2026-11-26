@@ -9,7 +9,7 @@ author:
   - "Ven Gist"
 role: "Research and Writing"
 descriptor: "Essay"
-cover: assets/intelligence-is-immanent-ii-cover_0.png
+cover: assets/intelligence-is-immanent-ii-cover_0.jpg
 edition_of: intelligence-is-immanent
 formats:
   - "epub"

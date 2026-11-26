@@ -6,7 +6,7 @@ date: 2026-10-22
 summary: "A process model on the becoming of minds, intelligence, and knowledge — framing intelligence as immanent individuation across cognitive assemblages, and asking what conditions keep epistemic systems healthy."
 author:
   - "Ven Gist"
-image: assets/intelligence-is-immanent-ii-cover_0.png
+image: assets/intelligence-is-immanent-ii-cover_0.jpg
 in_mediashop: intelligence-is-immanent-edition
 ---
 _A Process Model on the Becoming of Minds, Intelligence, and Knowledge_

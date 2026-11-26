@@ -8,7 +8,7 @@ author:
   - "The Open Machine"
 role: "Writing & Design"
 descriptor: "Poster"
-cover: assets/gfel_poster.png
+cover: assets/gfel_poster.jpg
 files:
   pdf: assets/gfel.pdf
 licence: "CC BY-NC-SA 4.0"

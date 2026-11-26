@@ -6,7 +6,7 @@ date: 2026-04-05
 summary: "The age of cognitive extraction is here. Always has been - and yet we are coming to a moment of runaway capacity in data harvesting, cognitive science and algorithmic surveillance capitalism that will put the prior modes of domination to shame."
 author:
   - "The Open Machine"
-image: assets/transmissions-OMMMC.png
+image: assets/transmissions-OMMMC.jpg
 project: mindfuck-movie-club
 ---
 **The age of cognitive extraction is here.**

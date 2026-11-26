@@ -6,7 +6,7 @@ date: 2026-03-09
 summary: "The term \"Ethereum Localism\" arose out of our efforts in the Portland community to engage the broader community of artists, organizers, hackers and makers on the affordances of the distributed ledger."
 author:
   - "exeunt"
-image: assets/transmissions-sunra.png
+image: assets/transmissions-sunra.jpg
 ---
 The term “Ethereum Localism” arose out of our efforts in the Portland community to engage the broader community of artists, organizers, hackers and makers on the affordances of the distributed ledger. The noxious reputation of the technology, which often mistook Ethereum for a corporate brand, presented problems. But the more damning problem was our missionary disposition; we hadn’t taken the time to understand, at a deep and principled level, the shared ground we were standing on, the ground from which a technological alliance and tool exchange might be deployed.
 

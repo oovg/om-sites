@@ -6,7 +6,7 @@ date: 2026-07-08
 summary: "Grounded in Deleuze & Guattari's concept of smooth and striated space, the essay covers a brief history of the internet and how it has oscillated between these two types of spaces. It traces its lineage from genesis as a smooth protocol web, its striation as it became a platform-State, to the modern resmoothing as protocol response."
 author:
   - "Ven Gist"
-image: assets/transmissions-nomad-web-desert-bw.png
+image: assets/transmissions-nomad-web-desert-bw.jpg
 in_mediashop: toward-a-nomad-web-edition
 ---
 # Introduction

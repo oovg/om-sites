@@ -32,7 +32,7 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - **Media slot:** every media item, newest first; "Descriptor - *Role*"; links to the mediashop item page in the same tab.
 - **Events list:** `Format - *Title*, Location YYYY`. Free-text dates such as "monthly beginning April 2026" are not in the model.
 - **Pages without a hero** use the old /donate layout: first section = title + lead paragraph, later sections titled blocks. **Differences on /donate:** no "Copy" buttons for the ENS name and address; the address block is not in small mono text.
-- **Transmission pages** keep the old label "View in Media Shop" (CLAUDE.md suggests "Also in the media shop"). *Pending decision.* Like the old page they have no footer. A transmission with a `url` and no body has no page; cards link to the `url`.
+- **Transmission pages** keep the old label "View in Media Shop" (CLAUDE.md suggests "Also in the media shop"), shown only when `in_mediashop` resolves to a media entry. Decided by vengi, 2026-11-26. Like the old page they have no footer. A transmission with a `url` and no body has no page; cards link to the `url`.
 - **/transmissions** list kept from the old site (old TransmissionsPost cards, no footer).
 - **Quarterly pages** (`/updates/<q>`) use the old /q3-2026 hero, Section and Item components. One section per digest project; status line as the section intro; update lines as cards with a "Project update" / "Status change" badge; entry lines as cards with their type as badge, cover beside for transmissions/media/books. **Not in the data model, so not shown:** the "Q3 2026 at a glance" panel (phase marks, counts, category summaries), the Published/Preparing/Brewing… status vocabulary, per-item prose and images for items that aren't entries, and the `noindex` meta tag.
 - **/updates/**, **/projects/<slug>**, **/collections/<slug>** are new; they reuse the q3 and transmission-page components.
@@ -41,6 +41,6 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 
 ## Fixture
 
-- Images copied from the hub repo, downscaled to 1600px. Large PDFs (Assembly poster, Inverted City) replaced by small typst placeholders; Friends of the Outside and Undercapital PDFs are the real ones.
+- Images copied from the hub repo, downscaled to 1600px; large opaque PNGs converted to JPEG (quality 82), PNGs with transparency kept. Large PDFs (Assembly poster, Inverted City) replaced by small typst placeholders; Friends of the Outside and Undercapital PDFs are the real ones.
 - Old post dates use the date the old site displayed (it converted midnight UTC to local time).
 - `toward-a-nomad-web`: `<strong id="cite-N">` anchors became plain bold (no HTML allowed in entries).

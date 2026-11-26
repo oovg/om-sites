@@ -8,7 +8,7 @@ author:
   - "The Open Machine"
 role: "Editing, Design, and Publishing"
 descriptor: "Book"
-cover: assets/EthLocalism_cover-on-table.png
+cover: assets/EthLocalism_cover-on-table.jpg
 files:
   pdf: assets/ethereum-localism.pdf
 licence: "CC BY-NC-SA 4.0"

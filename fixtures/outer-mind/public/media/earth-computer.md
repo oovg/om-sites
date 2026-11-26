@@ -8,7 +8,7 @@ author:
   - "The Open Machine"
 role: "Research, Writing and Design"
 descriptor: "Poster"
-cover: assets/assembly_wall.png
+cover: assets/assembly_wall.jpg
 files:
   pdf: assets/earth-computer.pdf
 licence: "CC BY-NC-SA 4.0"
