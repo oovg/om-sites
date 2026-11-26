@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro'
+import QSection from '../../components/QSection.astro'
+import QItem from '../../components/QItem.astro'
+import { assetUrl, href, om, projectMembers, projectParts, projectUpdates, TYPE_LABEL } from '../../lib/hub'
+import { html } from '../../lib/render'
+import { entriesOf, formatShort } from '@om/content'
+
+export function getStaticPaths() {
+  return entriesOf(om(), 'project').map((p) => ({ params: { slug: p.slug } }))
+}
+const o = om()
+const p = entriesOf(o, 'project').find((x) => x.slug === Astro.params.slug)!
+const { description, outputs, other } = projectParts(p, o)
+const updates = projectUpdates(p)
+const members = projectMembers(p, o)
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+---
+<Base title={p.data.title} description={p.data.summary}>
+  <div class="q-hero">
+    <span class:list={['badge', { 'badge--strong': p.data.status === 'active' }]}>{cap(p.data.status)}</span>
+    <h1 class="h">{p.data.title}</h1>
+    <div class="q-hero-body" set:html={html(description.flatMap((s) => s.nodes))} />
+  </div>
+  {outputs && (
+    <QSection title="Outputs" id="outputs">
+      <QItem><Fragment set:html={html(outputs.nodes)} /></QItem>
+    </QSection>
+  )}
+  {other.map((s) => (
+    <QSection title={s.heading}><QItem><Fragment set:html={html(s.nodes)} /></QItem></QSection>
+  ))}
+  {updates.length > 0 && (
+    <QSection title="Updates" id="updates">
+      {[...updates].reverse().map((u) => (
+        <QItem badge={u.statusChange ? 'Status change' : 'Update'} badgeStrong={u.statusChange} title={formatShort(u.date)}>
+          {u.statusChange ? <p><strong>{u.text}</strong></p> : <p>{u.text}</p>}
+        </QItem>
+      ))}
+    </QSection>
+  )}
+  {members.map(([type, list]) => (
+    <QSection title={TYPE_LABEL[type] ?? cap(type)}>
+      {list.map((e) => (
+        <QItem
+          badge={cap(type)}
+          title={e.data.title}
+          href={href(e, o)}
+          image={assetUrl((e.data as any).image ?? (e.data as any).cover)}
+          beside
+        >
+          <p class="q-item-meta">{formatShort(e.data.date)}</p>
+          <p>{e.data.summary}</p>
+        </QItem>
+      ))}
+    </QSection>
+  ))}
+</Base>

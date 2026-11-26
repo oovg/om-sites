@@ -1,0 +1,16 @@
+---
+/** Top of the old /transmissions/[slug] page: "Transmissions" link, date, title, author, shop link. */
+import { formatShort } from '@om/content'
+interface Props { date?: string; title: string; by?: string; shopHref?: string; book?: { title: string; href: string } }
+const { date, title, by, shopHref, book } = Astro.props
+---
+<div class="post-top">
+  <a href="/transmissions"><h2 class="post-label">Transmissions</h2></a>
+</div>
+<div class="post-head">
+  {date && <p>{formatShort(date)}</p>}
+  <div class="markdown"><h1>{title}</h1></div>
+  {by && <p class="post-by"><i>by</i> {by}</p>}
+  {book && <p class="post-by">From <a href={book.href}><i>{book.title}</i></a></p>}
+  {shopHref && <p class="post-shop"><a href={shopHref} target="_blank" rel="noopener">View in Media Shop</a></p>}
+</div>

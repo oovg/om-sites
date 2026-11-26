@@ -1,0 +1,12 @@
+---
+/** Two-column section from the old home page (Research, Process): heading + intro left, content right. */
+interface Props { heading: string; intro?: string; id?: string }
+const { heading, intro, id } = Astro.props
+---
+<div class="sb" id={id}>
+  <div class="sb-left">
+    <h2 class="h">{heading}</h2>
+    {intro && <div class="sb-intro" set:html={intro} />}
+  </div>
+  <div class="sb-right"><slot /></div>
+</div>

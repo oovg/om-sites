@@ -1,0 +1,9 @@
+---
+/** Section header from the old home page (Transmissions, Media, Events): centred title, bordered intro. */
+interface Props { heading: string; intro?: string; id?: string; variant?: 'events' }
+const { heading, intro, id, variant } = Astro.props
+---
+<div class:list={['sh', { 'sh--events': variant === 'events' }]} id={id}>
+  <div class="sh-title"><h2 class="h">{heading}</h2></div>
+  <div class="sh-intro">{intro && <div set:html={intro} />}</div>
+</div>

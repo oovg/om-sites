@@ -1,0 +1,28 @@
+---
+import SectionB from '../SectionB.astro'
+import QItem from '../QItem.astro'
+import { href, om, projectsByStatus, projectUpdates } from '../../lib/hub'
+import { formatShort } from '@om/content'
+interface Props { heading: string; intro?: string }
+const { heading, intro } = Astro.props
+const o = om()
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+---
+<SectionB heading={heading} intro={intro} id="projects">
+  {projectsByStatus(o).map((g, i) => (
+    <>
+      <h2 class:list={['h', 'sb-sub', { 'sb-sub--next': i > 0 }]}>{cap(g.status)}</h2>
+      <div class="q-right">
+        {g.projects.map((p) => {
+          const latest = projectUpdates(p).at(-1)
+          return (
+            <QItem badge={cap(p.data.status)} badgeStrong={p.data.status === 'active'} title={p.data.title} href={href(p, o)}>
+              <p>{p.data.summary}</p>
+              {latest && <p class="q-item-meta">{formatShort(latest.date)}: {latest.text}</p>}
+            </QItem>
+          )
+        })}
+      </div>
+    </>
+  ))}
+</SectionB>

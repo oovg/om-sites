@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro'
+import QSection from '../../components/QSection.astro'
+import QItem from '../../components/QItem.astro'
+import { href, om, projectsByStatus, quarterlies } from '../../lib/hub'
+import { firstParagraph, nodesToHtml, quarterLabel, resolveWikilinks, splitDigest } from '@om/content'
+const o = om()
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+---
+<Base title="Updates" description={o.site?.data.tagline ?? ''}>
+  <div class="q-hero"><h1 class="h">Updates</h1></div>
+  <QSection title="Projects" id="projects">
+    {projectsByStatus(o).flatMap((g) =>
+      g.projects.map((p) => (
+        <QItem badge={cap(p.data.status)} badgeStrong={p.data.status === 'active'} title={p.data.title} href={href(p, o)}>
+          <p>{p.data.summary}</p>
+        </QItem>
+      )),
+    )}
+  </QSection>
+  <QSection title="Quarterly updates" id="quarterly">
+    {quarterlies(o).map((q) => {
+      const para = firstParagraph(resolveWikilinks(splitDigest(q.body).intro, { om: o, site: 'hub' }))
+      return (
+        <QItem badge={quarterLabel(q.data.quarter)} badgeStrong title={q.data.title} href={href(q, o)}>
+          {para && <Fragment set:html={nodesToHtml([para])} />}
+        </QItem>
+      )
+    })}
+  </QSection>
+</Base>

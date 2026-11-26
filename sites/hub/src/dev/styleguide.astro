@@ -1,0 +1,44 @@
+---
+/**
+ * Dev-only style guide (/_styleguide, `pnpm dev`): every slot, one real entry of each type the hub
+ * shows, and the richest markdown body in the outer mind, so a redesign can be checked on one page.
+ */
+import Base from '../layouts/Base.astro'
+import Slot from '../components/slots/Slot.astro'
+import SectionB from '../components/SectionB.astro'
+import QItem from '../components/QItem.astro'
+import PostHead from '../components/PostHead.astro'
+import { SLOTS, byDateDesc, entriesOf, formatShort } from '@om/content'
+import { assetUrl, authorLine, href, md, om } from '../lib/hub'
+const o = om()
+const types = ['page', 'transmission', 'collection', 'media', 'event', 'project', 'quarterly'] as const
+const sample = types.map((t) => [t, entriesOf(o, t).sort(byDateDesc)[0]] as const).filter(([, e]) => e)
+const score = (b: string) =>
+  [/^#{1}\s/m, /^#{2}\s/m, /^#{3}\s/m, /^#{4}\s/m, /^#{5}\s/m, /^#{6}\s/m, /^>\s/m, /^```/m, /^\s*[-*]\s/m, /^\s*\d+\.\s/m, /!\[/, /\[\^/, /^\|/m]
+    .filter((r) => r.test(b)).length
+const richest = [...o.entries].filter((e) => e.type === 'transmission').sort((a, b) => score(b.body) - score(a.body))[0]
+const longest = [...o.entries].sort((a, b) => b.data.title.length - a.data.title.length)[0]
+---
+<Base title="Style guide" shell="home">
+  <SectionB heading="Style guide" intro="<p>Dev only. Every slot, a sample of each entry type, and the richest markdown body in the outer mind.</p>">
+    <h2 class="h sb-sub">Type samples</h2>
+    <div class="q-right">
+      {sample.map(([t, e]) => (
+        <QItem badge={t} title={e.data.title} href={href(e, o)} image={assetUrl((e.data as any).image ?? (e.data as any).cover)} beside>
+          <p class="q-item-meta">{formatShort(e.data.date)} · {e.file}</p>
+          <p>{e.data.summary ?? '(no summary)'}</p>
+        </QItem>
+      ))}
+      <QItem badge="longest title" title={longest.data.title} href={href(longest, o)}><p>{longest.file}</p></QItem>
+      <QItem badge="no badge, no title"><p>Empty optional fields render nothing.</p></QItem>
+    </div>
+  </SectionB>
+  {SLOTS.map((s) => <Slot name={s} intro={`<p>Slot: ${s}</p>`} />)}
+  {richest && (
+    <div class="post">
+      <PostHead date={richest.data.date} title={richest.data.title} by={authorLine(richest) || undefined} />
+      <div class="rule"><div></div></div>
+      <div class="markdown" set:html={md(richest.body, o)} />
+    </div>
+  )}
+</Base>

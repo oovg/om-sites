@@ -1,0 +1,54 @@
+---
+import Icons from './Icons.astro'
+import { hubTitle, nav, om } from '../lib/hub'
+const o = om()
+const items = nav(o)
+// The old header shows the last nav item (Donate) as a bordered button.
+const links = items.slice(0, -1)
+const last = items.at(-1)
+const ext = (external: boolean) => (external ? { target: '_blank', rel: 'noopener' } : {})
+---
+<div class="hdr-wrap" data-menu>
+  <header class="hdr">
+    <h1 class="hdr-title h"><a href="/" class="ulink">{hubTitle(o)}</a></h1>
+    <div class="hdr-nav">
+      {links.map((n) => <a href={n.href} class="ulink" {...ext(n.external)}>{n.label}</a>)}
+      {last && <a href={last.href} class="btn" {...ext(last.external)}>{last.label}</a>}
+    </div>
+    <button type="button" class="hdr-burger" aria-label="Toggle menu" aria-expanded="false" data-menu-toggle>
+      <Icons name="menu" class="ico-open" /><Icons name="close" class="ico-close" />
+    </button>
+  </header>
+  <div class="mnav">
+    <nav aria-label="Main navigation">
+      {links.map((n, i) => (
+        <div class="mnav-item" style={`--d:${(i * 0.1 + 0.1).toFixed(1)}s`}>
+          <a href={n.href} class="ulink" data-menu-link {...ext(n.external)}>{n.label}</a>
+        </div>
+      ))}
+      {last && (
+        <div class="mnav-item" style={`--d:${(links.length * 0.1 + 0.1).toFixed(1)}s`}>
+          <a href={last.href} class="btn" data-menu-link {...ext(last.external)}>{last.label}</a>
+        </div>
+      )}
+    </nav>
+  </div>
+  <div class="mnav-overlay" data-menu-close></div>
+</div>
+<script>
+  // Mobile menu, as in the old Header: toggle, Escape to close, lock body scroll, close shortly after a link click.
+  const wrap = document.querySelector<HTMLElement>('[data-menu]')
+  const btn = wrap?.querySelector<HTMLButtonElement>('[data-menu-toggle]')
+  if (wrap && btn) {
+    const set = (open: boolean) => {
+      wrap.classList.toggle('menu-open', open)
+      btn.setAttribute('aria-expanded', String(open))
+      document.body.style.overflow = open ? 'hidden' : ''
+    }
+    const isOpen = () => wrap.classList.contains('menu-open')
+    btn.addEventListener('click', () => set(!isOpen()))
+    wrap.querySelector('[data-menu-close]')?.addEventListener('click', () => set(false))
+    wrap.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setTimeout(() => set(false), 150)))
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) set(false) })
+  }
+</script>

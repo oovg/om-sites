@@ -1,0 +1,4 @@
+/* Shared minimal reset. Each site's own stylesheet carries its design. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, svg, video { display: block; max-width: 100%; }

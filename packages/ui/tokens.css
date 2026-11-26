@@ -1,0 +1,65 @@
+/*
+ * Design tokens: the one place to restyle. One block per site; the four designs stay separate.
+ * Components use these variables, never raw values.
+ */
+
+/* ---------------------------------------------------------------- hub (theopenmachine.net)
+ * From the old site's Chakra theme (the-open-template/src/theme): semantic colours, Typekit fonts,
+ * Chakra's default type scale with sm/md/lg overridden, 0.25rem spacing unit, md breakpoint 48em.
+ */
+:root[data-site='hub'] {
+  color-scheme: dark;
+  --primary: #f0fdfa;
+  --bg: #000;
+  --muted: #3c3c3c;
+  --midtone: #8c8c8c;
+  --cta-bg: #fff;
+  --cta-fg: #000;
+  --cta-hover: #edf2f7; /* Chakra gray.100 */
+  --focus-ring: 0 0 0 3px rgba(66, 153, 225, 0.6); /* Chakra shadows.outline */
+  --overlay: rgba(0, 0, 0, 0.36); /* Chakra blackAlpha.400 */
+  --burger-hover: rgba(255, 255, 255, 0.1);
+
+  --font-heading: 'polymath-display', sansserif;
+  --font-body: 'adobe-caslon-pro', serif;
+  --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 16px;
+  --fs-md: 18px;
+  --fs-lg: 22px;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+  --fs-4xl: 2.25rem;
+  --fs-5xl: 3rem;
+
+  --lh-body: 1.5;
+  --lh-heading: 1.33; /* Chakra Heading below md */
+  --lh-heading-md: 1.2; /* Chakra Heading from md */
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  --s12: 48px;
+  --s14: 56px;
+  --s16: 64px;
+  --s20: 80px;
+
+  --header-h: 80px;
+  --ease-menu: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-site='hub'] {
+    color-scheme: light;
+    --primary: #282828;
+    --bg: #f0fdfa;
+    --burger-hover: rgba(0, 0, 0, 0.04);
+  }
+}

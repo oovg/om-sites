@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro'
+import PageBody from '../components/PageBody.astro'
+import { pages, om } from '../lib/hub'
+import { splitSections, mdToString } from '@om/content'
+
+export function getStaticPaths() {
+  return pages(om()).map((p) => ({
+    params: { path: p.data.path === '/' ? undefined : p.data.path.replace(/^\/|\/$/g, '') },
+    props: { slug: p.slug },
+  }))
+}
+const o = om()
+const page = pages(o).find((p) => p.slug === Astro.props.slug)!
+const isHome = page.data.path === '/'
+const first = splitSections(page.body, { om: o, site: 'hub' }).find((s) => s.heading && s.heading !== 'Hero')
+const title = isHome ? page.data.title : (page.data.title || first?.heading || '')
+const heroImg = page.body.match(/!\[[^\]]*\]\((assets\/[^)\s]+)\)/)?.[1]
+---
+<Base title={title} description={page.data.summary ?? ''} image={heroImg ? `/${heroImg}` : undefined} shell={isHome ? 'home' : 'stretch'}>
+  <PageBody page={page} />
+</Base>

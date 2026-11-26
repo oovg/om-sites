@@ -1,0 +1,67 @@
+---
+import '@om/ui/reset.css'
+import '@om/ui/tokens.css'
+import '../styles/hub.css'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+import { hubTitle, om } from '../lib/hub'
+import { siteBase } from '@om/content'
+
+interface Props {
+  title: string
+  description?: string
+  image?: string
+  /** Old pages differ: home uses w=100vw/align start; donate, q3 stretch to 100%. */
+  shell?: 'home' | 'stretch' | 'post'
+  footer?: boolean
+}
+const { title, description = '', image, shell = 'stretch', footer = true } = Astro.props
+const o = om()
+const base = siteBase(o, 'hub')
+const fullTitle = `${title} // ${hubTitle(o)}`
+const ogImage = new URL(image ?? '/og/tOM_unfurl.jpg', base + '/').href
+const url = new URL(Astro.url.pathname, base + '/').href
+---
+<!doctype html>
+<html lang="en" data-site="hub">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="title" content={fullTitle} />
+    <meta name="description" content={description} />
+    <meta name="application-name" content={hubTitle(o)} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={hubTitle(o)} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={hubTitle(o)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="alternate" type="application/rss+xml" title={hubTitle(o)} href="/rss.xml" />
+    <!-- Typekit kit from the old site (polymath-display, adobe-caslon-pro): see DECISIONS.md -->
+    <link rel="stylesheet" href="https://use.typekit.net/ulo1dho.css" />
+  </head>
+  <body>
+    {shell === 'post' ? (
+      <>
+        <main><Header /></main>
+        <slot />
+        {footer && <Footer />}
+      </>
+    ) : (
+      <div class:list={['page', { 'page--stretch': shell === 'stretch' }]}>
+        <main>
+          <Header />
+          <slot />
+          {footer && <Footer />}
+        </main>
+      </div>
+    )}
+  </body>
+</html>
