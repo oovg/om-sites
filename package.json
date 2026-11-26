@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.22.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "check": "tsx packages/content/check.ts",
     "build": "pnpm check && pnpm -r --filter \"./sites/*\" --if-present build",
@@ -15,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "playwright": "1.54.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }
