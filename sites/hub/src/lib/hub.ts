@@ -9,6 +9,7 @@ import {
   hrefOf,
   hrefTo,
   loadOuterMind,
+  notebookList,
   type OuterMind,
   PROJECT_STATUSES,
   renderMarkdown,
@@ -74,7 +75,7 @@ export function mediaCover(m: Entry<'media'>, o: OuterMind = om()): string | und
 export const events = (o: OuterMind = om()) => entriesOf(o, 'event').sort(byDateDesc)
 
 export function notebooks(o: OuterMind = om()) {
-  const all = entriesOf(o, 'notebook').sort((a, b) => a.data.title.localeCompare(b.data.title))
+  const all = notebookList(o).sort((a, b) => a.data.title.localeCompare(b.data.title))
   return { frameworks: all.filter((n) => n.data.framework), working: all.filter((n) => !n.data.framework) }
 }
 

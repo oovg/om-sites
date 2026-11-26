@@ -1,11 +1,11 @@
 /** Notebooks data, through @om/content. */
-import { type Entry, entriesOf, loadOuterMind, type OuterMind, outgoing, renderMarkdown, siteBase, siteIdOf } from '@om/content'
+import { type Entry, entriesOf, loadOuterMind, notebookList, type OuterMind, outgoing, renderMarkdown, siteBase, siteIdOf } from '@om/content'
 
 export const om = () => loadOuterMind()
 export const SITE = 'notebooks' as const
 
 export function notebooks(o: OuterMind = om()) {
-  const all = entriesOf(o, 'notebook').sort((a, b) => a.data.title.localeCompare(b.data.title))
+  const all = notebookList(o).sort((a, b) => a.data.title.localeCompare(b.data.title))
   return { frameworks: all.filter((n) => n.data.framework), working: all.filter((n) => !n.data.framework) }
 }
 
@@ -34,7 +34,7 @@ export function conceptsUsed(n: Entry<'notebook'>, o: OuterMind = om()): Entry<'
 
 /** Notebooks that use a concept. */
 export function notebooksUsing(c: Entry<'concept'>, o: OuterMind = om()) {
-  return entriesOf(o, 'notebook').filter((n) => conceptsUsed(n, o).some((x) => x.slug === c.slug))
+  return notebookList(o).filter((n) => conceptsUsed(n, o).some((x) => x.slug === c.slug))
 }
 
 /** Markdown for the notebooks site: [[concept]] → /glossary#slug, other links to their site. */

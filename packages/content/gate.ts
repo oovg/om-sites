@@ -6,10 +6,11 @@ import { spawnSync } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { WORKSPACE } from './config.ts'
-import { entriesOf, loadOuterMind } from './load.ts'
+import { notebookList } from './bespoke.ts'
+import { loadOuterMind } from './load.ts'
 
 const om = loadOuterMind()
-if (entriesOf(om, 'notebook').length === 0) {
+if (notebookList(om).length === 0) {
   console.log('notebooks: skipped (no notebook in the outer mind yet)')
   // A build that skips must not leave an earlier build's pages behind.
   if (process.argv.includes('build')) rmSync(join(WORKSPACE, 'dist/notebooks'), { recursive: true, force: true })

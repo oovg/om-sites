@@ -10,6 +10,7 @@ import {
   backlinks,
   byDateDesc,
   type Entry,
+  hasNotebooks,
   hrefOf,
   loadOuterMind,
   locate,
@@ -144,7 +145,7 @@ export function seenOn(e: Entry, o: OuterMind = om()): { site: string; href: str
   const label: Record<string, string> = { hub: 'the hub', mediashop: 'the media shop', notebooks: 'the notebooks' }
   const loc = locate(o, e)
   if (loc.site !== 'wiki' && !(e.type === 'page' && siteIdOf((e as Entry<'page'>).data.site) !== 'hub')) {
-    if (!(loc.site === 'notebooks' && !o.entries.some((x) => x.type === 'notebook'))) {
+    if (!(loc.site === 'notebooks' && !hasNotebooks(o))) {
       out.push({ site: label[loc.site], href: hrefOf(o, e, 'wiki') })
     }
   }

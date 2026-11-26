@@ -2,7 +2,7 @@
  * Where each entry lives, and `[[slug|text]]` → URL on the right site. Backlinks.
  */
 import type { Entry, OuterMind } from './load.ts'
-import { entriesOf } from './load.ts'
+import { notebookList } from './bespoke.ts'
 
 export type SiteId = 'hub' | 'mediashop' | 'wiki' | 'notebooks'
 export const SITE_IDS: SiteId[] = ['hub', 'mediashop', 'wiki', 'notebooks']
@@ -25,7 +25,7 @@ export function siteBase(om: OuterMind, site: SiteId): string {
 }
 
 export function hasNotebooks(om: OuterMind): boolean {
-  return entriesOf(om, 'notebook').length > 0
+  return notebookList(om).length > 0
 }
 
 /** The wiki path of any entry: its path in public/ without `.md` (a notebook: its folder). */
