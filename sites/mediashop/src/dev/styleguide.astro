@@ -1,7 +1,7 @@
 ---
 /**
- * Dev-only style guide (/_styleguide): every kind of item the shop shows — a work, an edition, a book
- * edition, one with a generated cover, one with every field and the sparsest — plus the item-page parts.
+ * Dev-only style guide (/_styleguide): every kind of item the shop shows — custom files, all generated,
+ * some formats only, a book, a generated cover, one with every field and the sparsest — plus the item-page parts.
  */
 import Base from '../layouts/Base.astro'
 import BookCard from '../components/BookCard.astro'
@@ -10,10 +10,11 @@ import { items } from '../lib/shop'
 const all = await items()
 const pick = (label: string, f: (i: (typeof all)[number]) => boolean) => ({ label, item: all.find(f) })
 const samples = [
-  pick('Work (own files)', (i) => !i.edition),
-  pick('Edition of a transmission', (i) => i.edition?.source.type === 'transmission'),
-  pick('Edition of a book', (i) => i.edition?.source.type === 'collection'),
-  pick('Generated cover', (i) => Boolean(i.edition?.cover)),
+  pick('Custom cover and files', (i) => i.supplied.includes('cover') && i.supplied.length > 1),
+  pick('All generated', (i) => i.supplied.length === 0),
+  pick('Some formats only', (i) => i.files.length > 0 && i.files.length < 3),
+  pick('A book', (i) => i.edition.source.type === 'collection'),
+  pick('Generated cover', (i) => Boolean(i.edition.cover)),
   pick('Most fields', (i) => Boolean(i.subtitle && i.descriptor && i.description)),
   pick('Fewest fields', (i) => !i.subtitle && !i.descriptor),
 ].filter((s) => s.item)

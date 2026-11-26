@@ -94,3 +94,13 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - **For LLMs:** `<path>.md` is the entry's file verbatim; `/llms.txt` (title, summary and raw-markdown URL per entry, grouped by folder); `/llms-full.txt` (every file, concatenated, each headed by an HTML comment with its path and URL); `/index.json` (path, type, title, summary, date, updated, links as wiki paths).
 - **Search:** Pagefind runs after `astro build` (offline). In `pnpm dev` there is no index, so the box says "Search is built with the site". Page titles are marked with `data-pagefind-meta`.
 - **Client JS:** the theme and reader toggles (with an inline pre-paint script) and loading Pagefind's own UI.
+
+## Schema 3, flat media folder and `pnpm media` (2026-11-26)
+
+- **The old site repos are no longer a reference.** The sections above record where each design came from; the code in `sites/` is now the reference, and nothing reads the old repos.
+- **`public/media/` is one flat folder** of transmissions, collections and shop entries; `load.ts` allows those three types there and tells them apart by `type`. Hub URLs are unchanged (`/transmissions/<slug>`, `/collections/<slug>`). Wiki paths follow the outer mind's folders, so those entries now sit under `/media/` on the wiki.
+- **Every media entry has `edition_of`.** `cover` and `files` are custom files the note supplied; `formats` is what the shop offers. The fixture's old shop "works" (posters, zines, the printed books) got small source transmissions (`<slug>-poster`, `-zine`, `-booklet`, `-anthology`) and `formats` matching what they supply.
+- **Generation moved out of the build** into `pnpm media` (`scripts/media.ts`), writing `media-files/<slug>/` (committed) with a `manifest.json`. The input hash covers the source text, entries, assets, templates, tokens, fonts and `editions.ts`, but not tool versions (recorded in the manifest only), so `pnpm check` and `pnpm build` need neither pandoc nor typst. The old `.cache/editions/` is unused and can be deleted.
+- **Download names**: every offered format is served as `/media/<slug>/<slug>.<ext>`, supplied or generated. A supplied cover keeps its asset URL; a generated one is `/media/<slug>/cover.png`.
+- **`pnpm check`**: a missing cover or format is an error ("run pnpm media"); a stale generated file is a warning, and the build ships the old file until `pnpm media` runs.
+- The fixture's generated files go to `fixtures/media-files/` (`OM_MEDIA_FILES`), so `pnpm media:fixture` never touches the real `media-files/`.

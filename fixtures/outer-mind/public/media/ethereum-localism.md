@@ -2,6 +2,11 @@
 type: media
 title: "Ethereum Localism"
 slug: ethereum-localism
+edition_of: ethereum-localism-anthology
+formats:
+  - "epub"
+  - "pdf"
+  - "md"
 date: 2023-07-28
 summary: "A Collection of Essays on the Future of Coordination"
 subtitle: "Grounding the Future of Coordination"

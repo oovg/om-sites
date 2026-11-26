@@ -37,25 +37,24 @@ export interface OuterMind {
   issues: Issue[]
 }
 
-/** Folder → type, and the slug a file there must carry. */
-function expected(rel: string): { type: EntryType; slug: string } | { error: string } {
+/** Folder → the types allowed there, and the slug a file there must carry. */
+function expected(rel: string): { types: EntryType[]; slug: string } | { error: string } {
   const parts = rel.split('/')
   const name = basename(rel, '.md')
-  if (rel === 'site.md') return { type: 'site', slug: 'site' }
+  if (rel === 'site.md') return { types: ['site'], slug: 'site' }
   const [top] = parts
-  const flat: Record<string, EntryType> = {
-    projects: 'project',
-    updates: 'quarterly',
-    transmissions: 'transmission',
-    media: 'media',
-    collections: 'collection',
-    events: 'event',
-    concepts: 'concept',
+  // media/ is one flat folder: transmissions, collections (books) and shop entries, told apart by `type`.
+  const flat: Record<string, EntryType[]> = {
+    projects: ['project'],
+    updates: ['quarterly'],
+    media: ['transmission', 'collection', 'media'],
+    events: ['event'],
+    concepts: ['concept'],
   }
-  if (flat[top] && parts.length === 2) return { type: flat[top], slug: name }
-  if (top === 'pages' && parts.length === 3) return { type: 'page', slug: name }
+  if (flat[top] && parts.length === 2) return { types: flat[top], slug: name }
+  if (top === 'pages' && parts.length === 3) return { types: ['page'], slug: name }
   if (top === 'notebooks' && parts.length === 3) {
-    return name === 'index' ? { type: 'notebook', slug: parts[1] } : { type: 'section', slug: name }
+    return name === 'index' ? { types: ['notebook'], slug: parts[1] } : { types: ['section'], slug: name }
   }
   return { error: `unexpected location: no entry type lives at public/${rel}` }
 }
@@ -136,11 +135,12 @@ export function loadOuterMind(): OuterMind {
       continue
     }
     const fm = dropNulls(raw as Record<string, unknown>)
-    if (fm.type !== exp.type) {
-      issues.push({ level: 'error', file, field: 'type', message: `is "${fm.type}", but files in this folder are "${exp.type}"` })
+    if (!exp.types.includes(fm.type as EntryType)) {
+      issues.push({ level: 'error', file, field: 'type', message: `is "${fm.type}", but files in this folder are ${exp.types.map((t) => `"${t}"`).join(' or ')}` })
       continue
     }
-    const result = schemas[exp.type].safeParse(fm)
+    const type = fm.type as EntryType
+    const result = schemas[type].safeParse(fm)
     if (!result.success) {
       for (const iss of result.error.issues) {
         issues.push({ level: 'error', file, field: iss.path.join('.') || undefined, message: iss.message })
@@ -156,7 +156,7 @@ export function loadOuterMind(): OuterMind {
       issues.push({ level: 'error', file, field: 'slug', message: `"${data.slug}" is also used by public/${prior.file}` })
       continue
     }
-    const entry: Entry = { type: exp.type, slug: data.slug, file: rel, data, body: split.body }
+    const entry: Entry = { type, slug: data.slug, file: rel, data, body: split.body }
     entries.push(entry)
     bySlug.set(entry.slug, entry)
   }

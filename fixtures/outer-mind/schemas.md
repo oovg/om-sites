@@ -1,4 +1,4 @@
-schema_version: 2
+schema_version: 3
 
 # Entry types
 
@@ -8,6 +8,8 @@ Every file in `public/` is one entry with a `type` that matches its folder. `pnp
 
 **`schema_version`** (first line) changes only when the content model changes: a new type, field or slot, not a restyle. `om-sites` declares which version it renders, and `pnpm check` fails on a mismatch.
 
+**`public/media/` holds everything from `05-media`, side by side:** transmissions, collections (books) and shop entries (`<slug>-edition.md`). Each file's `type` says which it is; slugs are unique across `public/`, so they never collide.
+
 Each type comes from one folder in the inner mind. The airlock passes that as `route` in `handoff.json`:
 
 | Inner-mind folder | `route.type` | Entry type | Path in `public/` |
@@ -16,9 +18,9 @@ Each type comes from one folder in the inner mind. The airlock passes that as `r
 | `02-research/<Notebook>/<other>.md` | `notebook-section` | `section` | `notebooks/<notebook>/<section>.md` |
 | `03-concepts/` | `concept` | `concept` | `concepts/<slug>.md` |
 | `04-projects/<Project> index.md` | `project` | `project` | `projects/<slug>.md` |
-| `05-media/` | `transmission` | `transmission` (+ `media` if `mediashop`) | `transmissions/<slug>.md` (+ `media/<slug>-edition.md`) |
-| `05-media/<Book> - Index.md` | `collection` | `collection` (+ `media` if `mediashop`) | `collections/<slug>.md` (+ `media/<slug>-edition.md`) |
-| `05-media/<Book> - <title>.md` | `transmission` with `route.collection` | `transmission` with `collection` | `transmissions/<book>-<title>.md` |
+| `05-media/` | `transmission` | `transmission` (+ `media` if `mediashop`) | `media/<slug>.md` (+ `media/<slug>-edition.md`) |
+| `05-media/<Book> - Index.md` | `collection` | `collection` (+ `media` if `mediashop`) | `media/<slug>.md` (+ `media/<slug>-edition.md`) |
+| `05-media/<Book> - <title>.md` | `transmission` with `route.collection` | `transmission` with `collection` | `media/<book>-<title>.md` |
 | `06-events/` | `event` | `event` | `events/<slug>.md` |
 | `Sites/<site>/<page>.md` | `page` | `page` | `pages/<site>/<slug>.md` |
 | `Sites/<site>/updates/<YYYY>-Q<n>.md` | `quarterly` | `quarterly` | `updates/<yyyy>-q<n>.md` |
@@ -48,7 +50,7 @@ Every entry also appears on the wiki.
 | `project` | hub | `status` (`proposed`, `active`, `paused`, `done`). Body = the public version the airlock built, verbatim: description, then optional `## Outputs` (links) and `## Updates` (dated lines) |
 | `transmission` | hub | Every finished piece from `05-media`: essays and media pieces. `project` (project slug, optional), `collection` (the book it belongs to, optional), `url` (if hosted elsewhere, e.g. Substack), `image` (optional), `in_mediashop` (the media slug, when it is also in the shop; never set on essays in a collection) |
 | `collection` | hub (Media section if in the shop), mediashop | A book of essays. `essays` (transmission slugs in reading order), `project` (optional), `in_mediashop`. Body = the book's own text (intro), verbatim |
-| `media` | hub (Media section), mediashop | Only for pieces published with `mediashop: true`. See "Two kinds of media" |
+| `media` | hub (Media section), mediashop | Only for pieces published with `mediashop: true`. See "Media entries" |
 | `event` | hub | `project` (optional), `format` (Movie Club, Gathering, Salon, Workshop, Lecture Series), `location`, `end` (optional), `image` (optional; hub gallery) |
 | `page` | its `site` (only the hub for now) | `site`, `path` (`/` = that site's home page). Body = sections as `##` headings; see "Pages and slots" |
 | `quarterly` | hub | `site`, `quarter` (e.g. `2026-Q3`). Body = the hand-written intro, verbatim, then the digest Claude builds when it lands |
@@ -110,27 +112,19 @@ A quarterly exists once its note is published. When it lands, Claude builds the 
 
 The digest starts with a `<!-- digest: … -->` line; everything above it is the person's intro, verbatim. Re-publishing the note rebuilds the digest.
 
-## Two kinds of media
+## Media entries
 
-**A work**: a zine, book, poster or booklet with its own files.
+Every media entry is the shop item for one transmission or book. Its files are whatever the inner note supplied, and `pnpm media` (in `om-sites`) generates the rest.
 
-| Field | Notes |
-|---|---|
-| `subtitle`, `author`, `role`, `descriptor` | `role` e.g. "Research, Writing and Design"; `descriptor` one line, e.g. "A poster visualizing…" |
-| `cover` | Path in `assets/` |
-| `files` | `pdf`, `epub`, `md` → paths in `assets/` |
-| `licence` | |
+| Field | Required | Notes |
+|---|---|---|
+| `edition_of` | yes | The slug of the transmission or collection it's made from. Never copy text into the media entry |
+| `cover` | no | Path in `assets/`: the custom cover the note supplied. If missing, `pnpm media` generates a typographic cover |
+| `files` | no | `pdf`, `epub` → paths in `assets/`: custom files the note supplied. Any format in `formats` not listed here is generated |
+| `formats` | no | Which formats the shop offers; default `[pdf, epub, md]` |
+| `subtitle`, `author`, `role`, `descriptor`, `licence` | no | `role` e.g. "Research, Writing and Design"; `descriptor` one line, e.g. "A poster visualizing…" |
 
-**An edition**: a shop edition of a transmission, generated by the build.
-
-| Field | Notes |
-|---|---|
-| `edition_of` | The slug of a transmission, or of a collection (then the edition is the book: intro, then every essay in `essays` order). Never copy text into the media entry |
-| `formats` | Default `[epub, pdf, md]`; the build generates these files |
-| `author`, `subtitle`, `descriptor` | Optional |
-| `cover` | Optional; if missing, the build generates a typographic cover |
-
-An entry has either `files` (a work) or `edition_of` (an edition), never both.
+The media entry's slug is `<edition_of>-edition`. For a book, generated files join the whole book (introduction, then every piece in `essays` order) into one file per format.
 
 ## Links and assets
 
