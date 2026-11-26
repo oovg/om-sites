@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institutions, Extitutions, & Substrates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1628;
+    --bg-deep: #071120;
+    --grid: rgba(125,211,232,0.055);
+    --grid-strong: rgba(125,211,232,0.12);
+    --line: #cdd9e5;
+    --line-dim: rgba(205,217,229,0.42);
+    --line-faint: rgba(205,217,229,0.22);
+    --cyan: #7dd3e8;
+    --red: #e85c4f;
+    --green: #5cb87a;
+    --blue: #5c9fe8;
+    --paper: #e8edf2;
+    --muted: #8fa3b8;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 44px 44px;
+    color: var(--paper);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .mono{ font-family: 'IBM Plex Mono', monospace; }
+
+  /* ============ HERO ============ */
+  .hero{
+    min-height: 74vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 90px 24px 36px;
+  }
+
+  .hero .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--cyan);
+    margin-bottom: 26px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .hero h1{
+    font-size: clamp(2.2rem, 6.5vw, 4.6rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    max-width: 18ch;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.15s forwards;
+  }
+
+  .hero h1 .g{ color: var(--green); }
+  .hero h1 .b{ color: var(--blue); }
+
+  .hero .sub{
+    margin-top: 24px;
+    max-width: 46ch;
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.3s forwards;
+  }
+
+  .scroll-hint{
+    margin-top: 48px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.5s forwards, bob 2.2s ease-in-out 1.2s infinite;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  @keyframes bob{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(6px); }
+  }
+
+  /* ============ DIAGRAM FRAME ============ */
+  .diagram-wrap{
+    max-width: 1400px;
+    margin: 0 auto 90px;
+    padding: 0 20px;
+  }
+
+  .frame{
+    position: relative;
+    border: none;
+    border-radius: 28px;
+    padding: 50px 40px 40px;
+  }
+
+  .frame-border{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0;
+  }
+
+  /* Text sits in a gap cut out of the frame stroke */
+  .frame-axis{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    color: var(--muted);
+    position: absolute;
+    background: var(--bg);
+    padding: 0 14px;
+    line-height: 1;
+    z-index: 1;
+  }
+  .axis-top{
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .axis-bottom{
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 50%);
+  }
+
+  .axis-side{
+    position: absolute;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 18px 5px;
+    line-height: 1;
+    z-index: 1;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  /* Centered on the left/right border stroke; gap interrupts the line */
+  .axis-left{
+    left: 0;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(180deg);
+  }
+  .axis-right{
+    right: 0;
+    top: 50%;
+    transform: translate(50%, -50%);
+  }
+
+  /* Central grid: left labels | central spine svg | right quotes */
+  .diagram-grid{
+    position: relative;
+    display: grid;
+    grid-template-columns: 250px 1fr 250px;
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  /* Full-width arcs separating the three sections */
+  .section-seam{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 56px;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+  }
+  .section-seam svg{
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .section-seam path{
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .section-seam-org{ top: 33.333%; transform: translateY(-50%); }
+  .section-seam-ind{ top: 66.666%; transform: translateY(-50%); }
+
+  /* Labels sit in a gap on the arc, same treatment as COMPOSE / DECOMPOSE */
+  .seam-label{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 0 14px;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  .col-left, .col-right{
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    align-items: center;
+    padding: 12px 4px;
+  }
+
+  .col-center{
+    position: relative;
+    z-index: 1;
+  }
+
+  .info-block{
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .info-block.visible{ opacity: 1; transform: translateY(0); }
+
+  .info-block .label{
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+  .info-block.institution .label{ color: var(--red); }
+  .info-block.extitution .label{ color: var(--green); }
+  .info-block.substrate .label{ color: var(--blue); }
+
+  /* Crossfade panels: detail stays in-flow (locks height); plain overlays */
+  .info-panels{
+    position: relative;
+  }
+  .info-panel{
+    transition: opacity 0.45s ease;
+  }
+  .info-panel-detail{
+    opacity: 1;
+  }
+  .info-panel-plain{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--paper);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .info-block.is-plain .info-panel-detail{
+    opacity: 0;
+    pointer-events: none;
+  }
+  .info-block.is-plain .info-panel-plain{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .info-block ul{
+    list-style: none;
+    font-size: 0.98rem;
+    line-height: 1.8;
+  }
+  .info-block .desc{
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .machinic{
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(92,184,122,0.35);
+  }
+  .machinic .mlabel{
+    color: var(--green);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .machinic .mdesc{
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .plain-toggle{
+    display: inline-block;
+    margin-top: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--cyan);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  .plain-toggle:hover{ opacity: 0.75; }
+  .plain-toggle-hide{ display: none; }
+  .info-block.is-plain .plain-toggle-show{ display: none; }
+  .info-block.is-plain .plain-toggle-hide{ display: inline; }
+  .info-block.institution .plain-toggle{ color: var(--red); }
+  .info-block.extitution .plain-toggle{ color: var(--green); }
+  .info-block.substrate .plain-toggle{ color: var(--blue); }
+
+  .quote-block{
+    font-style: italic;
+    font-size: 0.84rem;
+    line-height: 1.65;
+    color: var(--muted);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease 0.1s, transform 0.7s ease 0.1s;
+  }
+  .quote-block.visible{ opacity: 1; transform: translateY(0); }
+  .quote-block .attr{
+    display: block;
+    margin-top: 8px;
+    font-style: normal;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+  }
+
+  .spine-svg{
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer{
+    position: relative;
+    border-top: 1px solid var(--grid-strong);
+    background: var(--bg-deep);
+    padding: 68px 24px 86px;
+  }
+
+  .footer-grid{
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 48px;
+  }
+
+  .footer-block{ text-align: center; }
+
+  .footer-block h3{
+    font-size: 0.98rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 26px;
+    color: var(--paper);
+  }
+
+  .flow-row{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .node-box{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+    border: 1px solid var(--line-dim);
+    border-radius: 3px;
+    color: var(--paper);
+    white-space: nowrap;
+  }
+
+  .flow-arrow{ color: var(--cyan); font-size: 14px; }
+  .dots{ font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-size: 14px; }
+
+  .footer-block.brand{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .comingle-figure{
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .comingle-graphic{
+    width: 72%;
+    margin: 0 auto;
+  }
+  .comingle-svg{
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .comingle-axis{
+    width: 100%;
+    margin-top: 22px;
+  }
+  .comingle-axis-track{
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .comingle-axis-line{
+    flex: 1;
+    height: 1.5px;
+    background: var(--paper);
+  }
+  .comingle-term{
+    flex-shrink: 0;
+  }
+  .comingle-term.square{
+    width: 11px;
+    height: 11px;
+    background: #fff;
+  }
+  .comingle-term.circle{
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid #fff;
+    border-radius: 50%;
+    box-sizing: border-box;
+  }
+  .comingle-term.extitution-zone{
+    position: relative;
+    width: 76px;
+    height: 76px;
+  }
+  .comingle-term.extitution-zone svg{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .extitution-label{
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 100%;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: var(--green);
+  }
+  .comingle-axis-labels{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    line-height: 1.35;
+    color: var(--paper);
+  }
+  .comingle-axis-labels > span{
+    display: flex;
+    flex-direction: column;
+  }
+  .comingle-axis-labels > span:first-child{
+    color: var(--red);
+  }
+  .comingle-axis-labels > span:last-child{
+    text-align: right;
+    align-items: flex-end;
+    color: var(--blue);
+  }
+  .comingle-axis-labels .sub{
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  .spiral-svg{
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    margin: 8px auto 0;
+    overflow: visible;
+  }
+  .spiral-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  .spiral-label.virtual{ fill: var(--blue); }
+  .spiral-label.actual{ fill: var(--cyan); }
+  .spiral-ellipsis{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    fill: var(--muted);
+  }
+
+  .seesaw-svg{
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    margin: 12px auto 0;
+    overflow: visible;
+  }
+  .seesaw-beam{
+    transform-origin: 140px 104px;
+    animation: seesawTilt 4.8s ease-in-out infinite;
+  }
+  .seesaw-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  .seesaw-label.being{ fill: var(--red); }
+  .seesaw-label.becoming{ fill: var(--green); }
+  .seesaw-label.machinic{ fill: var(--green); }
+  .seesaw-label .sub{ opacity: 0.7; }
+
+  @keyframes seesawTilt{
+    0%, 100%{ transform: rotate(-4deg); }
+    50%{ transform: rotate(4deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .seesaw-beam{ animation: none; transform: rotate(-2deg); }
+  }
+
+  /* ============ GLOSSARY ============ */
+  .glossary{
+    max-width: 1100px;
+    margin: 72px auto 0;
+    padding-top: 56px;
+    border-top: 1px solid var(--grid-strong);
+  }
+  .glossary-title{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 28px;
+  }
+  .glossary-list{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 48px;
+    margin: 0;
+    padding: 0;
+  }
+  .glossary-item{
+    display: grid;
+    grid-template-columns: minmax(120px, 160px) 1fr;
+    gap: 16px 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--grid);
+    align-items: baseline;
+  }
+  .glossary-item dt{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--paper);
+    margin: 0;
+  }
+  .glossary-item dd{
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .site-credit{
+    max-width: 1100px;
+    margin: 56px auto 0;
+    padding-top: 32px;
+    border-top: 1px solid var(--grid);
+    text-align: center;
+  }
+  .site-credit a{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .site-credit a:hover{
+    color: var(--cyan);
+  }
+  .site-credit .heart{
+    color: var(--red);
+  }
+
+  @media (max-width: 980px){
+    .diagram-grid{ grid-template-columns: 1fr; }
+    .col-left, .col-right{
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 28px;
+      justify-content: center;
+      text-align: center;
+    }
+    .info-block, .quote-block{ max-width: 260px; }
+    .frame{ padding: 40px 20px 30px; }
+    .footer-grid{ grid-template-columns: 1fr; gap: 52px; }
+    .section-seam{ display: none; }
+    .glossary-list{ grid-template-columns: 1fr; gap: 0; }
+    .glossary-item{ grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="eyebrow mono">THE OPEN MACHINE</div>
+    <h1>Institutions, <span class="g">Extitutions</span>, &amp; <span class="b">Substrates</span></h1>
+    <p class="sub">An organizational framework for understanding the attributes of institutions, extitutions, substrates, and the relationship between them.</p>
+    <div class="scroll-hint mono">SCROLL ↓</div>
+  </section>
+
+  <!-- ============ DIAGRAM FRAME ============ -->
+  <div class="diagram-wrap">
+    <div class="frame">
+      <svg class="frame-border" id="frameBorder" aria-hidden="true"></svg>
+
+      <!-- Labels fill gaps in the frame stroke -->
+      <div class="frame-axis axis-top mono">THE ACTUAL</div>
+      <div class="frame-axis axis-bottom mono">THE VIRTUAL</div>
+      <div class="axis-side axis-left mono">COMPOSE</div>
+      <div class="axis-side axis-right mono">DECOMPOSE</div>
+
+      <div class="diagram-grid">
+
+        <!-- Full-width section separators — arcs pass through label centers -->
+        <div class="section-seam section-seam-org">
+          <svg viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Downward arc; midpoint at y=28 (vertical center) -->
+            <path d="M 8,6 Q 600,50 1192,6"/>
+          </svg>
+          <span class="seam-label mono">ORGANIZATION</span>
+        </div>
+        <div class="section-seam section-seam-ind">
+          <svg viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Upward arc; midpoint at y=28 (vertical center) -->
+            <path d="M 8,50 Q 600,6 1192,50"/>
+          </svg>
+          <span class="seam-label mono">INDIVIDUATION</span>
+        </div>
+
+        <!-- LEFT COLUMN: labels -->
+        <div class="col-left">
+          <div class="info-block institution" id="infoInstitution">
+            <div class="label">Institution</div>
+            <div class="info-panels">
+              <div class="info-panel info-panel-detail">
+                <ul>
+                  <li>Stable</li>
+                  <li>Deterministic</li>
+                  <li>Subjective</li>
+                </ul>
+                <div class="desc">Production bounded in the Actual</div>
+              </div>
+              <p class="info-panel info-panel-plain">A settled form that holds things in place — clear roles, rules, and outcomes that stay predictable and bounded.</p>
+            </div>
+            <button type="button" class="plain-toggle" aria-expanded="false">
+              <span class="plain-toggle-show">Plain language</span>
+              <span class="plain-toggle-hide">Attributes</span>
+            </button>
+          </div>
+
+          <div class="info-block extitution" id="infoExtitution">
+            <div class="label">Extitution</div>
+            <div class="info-panels">
+              <div class="info-panel info-panel-detail">
+                <ul>
+                  <li>Meta&#8209;stable</li>
+                  <li>Codeterministic</li>
+                  <li>Inter&#8209;subjective</li>
+                </ul>
+                <div class="desc">Capable of semi&#8209;virtual production</div>
+                <div class="machinic">
+                  <div class="mlabel">+ Machinic Point</div>
+                  <div class="mdesc">Minimum viable event surface of effective machination</div>
+                </div>
+              </div>
+              <p class="info-panel info-panel-plain">A living arrangement that can keep enough shape to act while staying open enough to change — balance between holding and becoming.</p>
+            </div>
+            <button type="button" class="plain-toggle" aria-expanded="false">
+              <span class="plain-toggle-show">Plain language</span>
+              <span class="plain-toggle-hide">Attributes</span>
+            </button>
+          </div>
+
+          <div class="info-block substrate" id="infoSubstrate">
+            <div class="label">Substrate</div>
+            <div class="info-panels">
+              <div class="info-panel info-panel-detail">
+                <ul>
+                  <li>Unstable</li>
+                  <li>Nondeterministic</li>
+                  <li>Processual</li>
+                </ul>
+                <div class="desc">Production unbounded and virtual</div>
+              </div>
+              <p class="info-panel info-panel-plain">The open field underneath — shifting potentials and flows that have not yet hardened into fixed organization.</p>
+            </div>
+            <button type="button" class="plain-toggle" aria-expanded="false">
+              <span class="plain-toggle-show">Plain language</span>
+              <span class="plain-toggle-hide">Attributes</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN: continuous connected spine SVG -->
+        <div class="col-center">
+          <svg class="spine-svg" id="spineSvg" viewBox="0 0 900 1680" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <clipPath id="clipView"><rect x="0" y="0" width="900" height="1680"/></clipPath>
+            </defs>
+
+            <!-- lines: square apex -> cluster -->
+            <g id="linesUpper" stroke="var(--line-dim)" stroke-width="2" fill="none"></g>
+            <!-- lines: cluster -> substrate blob -->
+            <g id="linesLower" stroke="var(--line-dim)" stroke-width="2" fill="none"></g>
+
+            <!-- INSTITUTION squares (outer + inner convergence enclosure) -->
+            <rect id="instSquare" x="360" y="190" width="180" height="180" fill="none" stroke="var(--paper)" stroke-width="2"/>
+            <rect id="instInner" x="426" y="256" width="48" height="48" fill="none" stroke="var(--paper)" stroke-width="2"/>
+
+            <!-- EXTITUTION cluster -->
+            <g id="extCluster"></g>
+
+            <!-- SUBSTRATE blob (exact path from source, scaled/translated) -->
+            <g id="substrateGroup" transform="translate(90, 1231) scale(0.75)">
+              <path id="substratePath" fill="none" stroke="var(--paper)" stroke-width="1" stroke-dasharray="6 6" vector-effect="non-scaling-stroke"
+                d="M909.66,423.63c-16.41,8.24-16.84,18.64-29.13,19.56-9.81.73-11.19-5.76-26.31-9.22-2.39-.55-28.42-6.22-38.18,5.89-5.32,6.61-1.55,13.24-7.61,19.66-5.37,5.7-13.87,6.34-19.65,6.13-.14,3.67-1.87,35.91-25.15,50.28-25.26,15.59-67.76,5.12-91.29-32.12-3.54,4.17-24.13,27.59-57.48,28.74-30.39,1.05-59.41-16.81-74.38-45.64-10.64-4.07-24.58-7.25-35.5-.85-8.61,5.05-9.46,12.62-17.55,20.57-6.82,6.71-18.68,13.58-40.77,14.02-3.1,10.88-9.85,28.21-25.36,42.32-36.71,33.4-104.65,32.51-142.01-5.07-23.74-23.89-27.4-54.82-28.12-67.58-2.38-5.35-6.59-12.38-14.15-16.1-9.39-4.63-17.84-1.16-28.3.02-16.81,1.89-38.52-2.16-52-13.54-23.25-19.63-17.4-57.14-16.91-60.01,4.55-26.64,22.6-42.23,27.89-46.49.06-16.82-4.25-22.97-8.45-25.36-3.29-1.87-4.98-.57-12.2-2.46-5.27-1.38-13.5-3.53-18.7-9.94-6.41-7.91-5.03-18.38-4.5-21.47-2.96-1.29-18.17-8.29-24.24-25.28-6.44-18.01.41-38.77,13.16-47.79,13.25-9.38,22.99.92,41.56-8.31,15.24-7.57,14.75-17.52,30.48-28.75,8.21-5.86,21.65-12.65,43.29-13.85,6.86-15.01,15.03-20.55,21.13-22.86,22.3-8.45,41.44,16.95,64.77,7.97,13.08-5.04,11.21-14.62,25.98-19.05,12.37-3.71,32.54-2.64,41.21,11.43,7.16,11.62,2.36,25.42,1.39,28.05,11.83,6.06,27.74,11.51,42.25,5.89,18.25-7.08,17.45-25.15,36.02-33.25,16.93-7.38,43.39-3.61,57.84,14.89,15.71,20.13,7.69,45.51,6.93,47.79.81-.26,11.76-3.54,20.78,3.81,7.8,6.36,8.05,15.67,8.06,16.97,15.35-35.45,50.96-56.78,86.84-52.99,45.96,4.86,66.62,48.21,67.54,50.22,8.53-7.16,22.49-16.51,39.83-16.62,28.25-.18,33.42,24.36,63.38,30.13,38.93,7.5,63.18-27.61,88.32-12.12,1.66,1.02,13.98,8.87,14.89,22.17.96,13.88-11.21,23.68-12.81,24.94,25.24,4.85,35.45,14.92,40.18,22.86,13.39,22.51-8.26,43.22,5.89,67.19,10.42,17.65,29.43,18.73,33.59,39.14.64,3.16,1.99,10.24-1.73,16.28-3.96,6.42-11.47,7.94-26.32,10.74-39.49,7.42-39.81,6.81-44.36,9.09Z"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- RIGHT COLUMN: quotes -->
+        <div class="col-right">
+          <div class="quote-block" id="quoteInstitution">
+            &ldquo;You will be organized, you will be an organism, you will articulate your body&hellip; you will be a subject, nailed down as one.&rdquo;
+            <span class="attr">&mdash; GILLES DELEUZE</span>
+          </div>
+
+          <div class="quote-block" id="quoteExtitution">
+            &ldquo;It swings between two poles, the surface of stratification in which it is recoiled, on which it submits to the judgment, and the plane of consistency in which it unfurls and opens to experimentation.&rdquo;
+            <span class="attr">&mdash; GILLES DELEUZE</span>
+          </div>
+
+          <div class="quote-block" id="quoteSubstrate">
+            &ldquo;the unformed, unorganized, nonstratified, or destratified body and all its flows&hellip; that glacial reality where the alluvions, sedimentations, coagulations, foldings, and recoilings that compose an organism&mdash;and also a signification and a subject&mdash;occur.&rdquo;
+            <span class="attr">&mdash; GILLES DELEUZE</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-block brand">
+        <h3>Extitutions exist as an adequate balance between stability of being and capacities of becoming</h3>
+        <svg class="seesaw-svg" viewBox="0 0 280 180" aria-label="Metastable balance between being and becoming">
+          <!-- Fulcrum — tip sits just under the bar -->
+          <path d="M140 110 L158 148 L122 148 Z" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-linejoin="round"/>
+
+          <!-- Oscillating beam + poles (bar centered on machinic point) -->
+          <g class="seesaw-beam">
+            <line x1="36" y1="104" x2="244" y2="104" stroke="var(--paper)" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- Stability of being: closed square -->
+            <rect x="28" y="94" width="20" height="20" fill="#fff"/>
+
+            <!-- Capacities of becoming: open circle -->
+            <circle cx="244" cy="104" r="11" fill="none" stroke="#fff" stroke-width="2"/>
+
+            <!-- Extitutional machinic point — bar runs through its center -->
+            <path d="M134 104 H146 M140 97 V108" stroke="var(--green)" stroke-width="2" stroke-linecap="round"/>
+          </g>
+
+          <text x="140" y="72" text-anchor="middle" class="seesaw-label machinic">
+            <tspan x="140" dy="0">extitutional</tspan>
+            <tspan x="140" dy="12" class="sub">machinic point</tspan>
+          </text>
+
+          <text x="38" y="162" text-anchor="middle" class="seesaw-label being">
+            <tspan x="38" dy="0">stability</tspan>
+            <tspan x="38" dy="12" class="sub">of being</tspan>
+          </text>
+          <text x="244" y="162" text-anchor="middle" class="seesaw-label becoming">
+            <tspan x="244" dy="0">capacities</tspan>
+            <tspan x="244" dy="12" class="sub">of becoming</tspan>
+          </text>
+        </svg>
+      </div>
+
+      <div class="footer-block">
+        <h3>Extitutions can act as mediums between Institutions and Substrates enabling open&#8209;ended intelligence</h3>
+        <div class="comingle-figure">
+          <div class="comingle-graphic">
+            <img class="comingle-svg" src="openEndedIntelligence.svg" alt="Extitution mediating between institution and substrate as open-ended intelligence"/>
+          </div>
+          <div class="comingle-axis">
+            <div class="comingle-axis-track">
+              <span class="comingle-term square" aria-hidden="true"></span>
+              <span class="comingle-axis-line" aria-hidden="true"></span>
+              <span class="comingle-term extitution-zone">
+                <svg viewBox="0 0 76 76" focusable="false" aria-hidden="true">
+                  <circle cx="38" cy="38" r="36" fill="var(--bg-deep)" fill-opacity="0.92"
+                    stroke="var(--green)" stroke-width="1.5" stroke-dasharray="3 3.5"/>
+                </svg>
+                <span class="extitution-label">extitution</span>
+              </span>
+              <span class="comingle-axis-line" aria-hidden="true"></span>
+              <span class="comingle-term circle" aria-hidden="true"></span>
+            </div>
+            <div class="comingle-axis-labels">
+              <span>Institution<span class="sub">(closed mind)</span></span>
+              <span>Substrate<span class="sub">(open mind)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-block">
+        <h3>Virtual &lt;&#8211;&gt; Actual Codeterminism</h3>
+        <svg class="spiral-svg" viewBox="0 0 280 280" aria-label="Upward spiral of Virtual and Actual codeterminism">
+          <defs>
+            <marker id="spiralArrow" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="5.5" markerHeight="5.5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,1.2 L9,5 L0,8.8 Z" fill="var(--paper)"/>
+            </marker>
+          </defs>
+
+          <!-- Side-view helix: two climbs — Virtuals with two Actuals, then indefinite -->
+          <g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- start rise into first loop -->
+            <path stroke="var(--paper)" marker-end="url(#spiralArrow)"
+              d="M 140,252 C 188,250 218,234 218,214"/>
+
+            <!-- loop 1: far then near -->
+            <path stroke="var(--line-faint)"
+              d="M 218,214 C 218,190 62,190 62,166"/>
+            <path stroke="var(--paper)" marker-end="url(#spiralArrow)"
+              d="M 62,166 C 62,142 218,142 218,118"/>
+
+            <!-- loop 2: far then rise into continuation -->
+            <path stroke="var(--line-faint)"
+              d="M 218,118 C 218,94 62,94 62,70"/>
+            <path stroke="var(--paper)" marker-end="url(#spiralArrow)"
+              d="M 62,70 C 62,52 120,42 148,30"/>
+          </g>
+
+          <text x="228" y="220" class="spiral-label virtual">Virtual</text>
+          <text x="6" y="170" class="spiral-label actual">Actual</text>
+          <text x="228" y="124" class="spiral-label virtual">Virtual</text>
+          <text x="6" y="74" class="spiral-label actual">Actual</text>
+          <text x="228" y="42" class="spiral-label virtual">Virtual</text>
+
+          <text x="158" y="22" class="spiral-ellipsis">…</text>
+        </svg>
+      </div>
+    </div>
+
+    <section class="glossary" aria-labelledby="glossary-title">
+      <h2 class="glossary-title" id="glossary-title">Glossary of key terms</h2>
+      <dl class="glossary-list">
+        <div class="glossary-item">
+          <dt>The Actual</dt>
+          <dd>That which is presently given, formed, and determinate — the realized surface of what has taken form.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>The Virtual</dt>
+          <dd>The real but not-yet-actualized field of potentials, tendencies, and intensive relations from which new actualizations emerge.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Being</dt>
+          <dd>The pole of form, identity, and persistence — what holds as structure (the square; capacities of being).</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Becoming</dt>
+          <dd>The pole of transformation, openness, and difference — what moves as process (the circle; capacities of becoming).</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Metastable</dt>
+          <dd>A tensed equilibrium charged with potential difference — neither fixed nor dissolved, poised for further individuation.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Machinic point</dt>
+          <dd>The fulcrum where being and becoming meet — the operational joint through which organization and individuation co-produce each other.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Processuality</dt>
+          <dd>The priority of becoming over finished form: reality as ongoing transformation rather than a set of completed things.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Codeterminism</dt>
+          <dd>Mutual determination between virtual and actual (or being and becoming): neither side is merely cause or effect; each continually remakes the other.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Inter-subjectivity</dt>
+          <dd>Shared meaning and coordination arising between minds — the field in which institutions and extitutions compose a common intelligence.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Institution</dt>
+          <dd>A closed mind: form that organizes, stabilizes, and reproduces patterns of being.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Extitution</dt>
+          <dd>An open mind: process that individuates, differentiates, and opens capacities of becoming.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Substrate</dt>
+          <dd>The material and intensive ground from which institutions and extitutions arise and into which they return.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Compose / Decompose</dt>
+          <dd>Twin movements of assembly toward form and dissolution back toward the virtual field.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Organization</dt>
+          <dd>The compositional ordering of relations into durable structure — the downward arc toward form.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Individuation</dt>
+          <dd>The emergence of singular beings from preindividual potentials — the upward arc of becoming.</dd>
+        </div>
+        <div class="glossary-item">
+          <dt>Open-Ended Intelligence</dt>
+          <dd>Intelligence as a living comingle of institutional form and extitutional process — never finished, always further individuating.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <p class="site-credit">
+      <a href="https://theopenmachine.net" target="_blank" rel="noopener noreferrer">built with <span class="heart">&lt;3</span> by the open machine</a>
+    </p>
+  </footer>
+
+<script>
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  // ---- Frame border: stroke segments terminate exactly into open-V arrowheads ----
+  function paintFrameBorder(){
+    const frame = document.querySelector('.frame');
+    const svg = document.getElementById('frameBorder');
+    if(!frame || !svg) return;
+
+    const w = frame.clientWidth;
+    const h = frame.clientHeight;
+    if(w < 40 || h < 40) return;
+
+    const r = 28;
+    const sw = 1.5;
+    const inset = sw / 2;
+    const x0 = inset, y0 = inset, x1 = w - inset, y1 = h - inset;
+
+    const fr = frame.getBoundingClientRect();
+    function gapBox(sel){
+      const el = document.querySelector(sel);
+      if(!el) return null;
+      const er = el.getBoundingClientRect();
+      const pad = 6; // breathe past label background
+      return {
+        x: er.left - fr.left - pad,
+        y: er.top - fr.top - pad,
+        r: er.right - fr.left + pad,
+        b: er.bottom - fr.top + pad
+      };
+    }
+
+    const topG = gapBox('.axis-top');
+    const botG = gapBox('.axis-bottom');
+    const leftG = gapBox('.axis-left');
+    const rightG = gapBox('.axis-right');
+
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.replaceChildren();
+
+    const defs = document.createElementNS(svgNS, 'defs');
+    const marker = document.createElementNS(svgNS, 'marker');
+    marker.setAttribute('id', 'frameArrow');
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '11');
+    marker.setAttribute('markerHeight', '11');
+    marker.setAttribute('orient', 'auto');
+    marker.setAttribute('markerUnits', 'userSpaceOnUse');
+    const tip = document.createElementNS(svgNS, 'path');
+    tip.setAttribute('d', 'M0.5,0.8 L9.5,5 L0.5,9.2');
+    tip.setAttribute('fill', 'none');
+    tip.setAttribute('stroke', 'var(--muted)');
+    tip.setAttribute('stroke-width', '1.35');
+    tip.setAttribute('stroke-linecap', 'round');
+    tip.setAttribute('stroke-linejoin', 'round');
+    marker.appendChild(tip);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    function addPath(d, withArrow){
+      const p = document.createElementNS(svgNS, 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', 'var(--muted)');
+      p.setAttribute('stroke-width', String(sw));
+      p.setAttribute('stroke-linecap', 'butt');
+      p.setAttribute('stroke-linejoin', 'round');
+      if(withArrow) p.setAttribute('marker-end', 'url(#frameArrow)');
+      svg.appendChild(p);
+    }
+
+    // Clockwise rounded frame with mid-side gaps; arrowheads terminate into each gap.
+    // Top-left corner → top edge → arrow into THE ACTUAL gap
+    addPath(
+      `M ${x0} ${y0 + r} A ${r} ${r} 0 0 1 ${x0 + r} ${y0} L ${topG ? topG.x : w * 0.35} ${y0}`,
+      true
+    );
+    // After THE ACTUAL → top-right corner → right edge → arrow into DECOMPOSE gap
+    addPath(
+      `M ${topG ? topG.r : w * 0.65} ${y0} L ${x1 - r} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y0 + r} L ${x1} ${rightG ? rightG.y : h * 0.35}`,
+      true
+    );
+    // After DECOMPOSE → bottom-right corner → bottom edge → arrow into THE VIRTUAL gap
+    addPath(
+      `M ${x1} ${rightG ? rightG.b : h * 0.65} L ${x1} ${y1 - r} A ${r} ${r} 0 0 1 ${x1 - r} ${y1} L ${botG ? botG.r : w * 0.65} ${y1}`,
+      true
+    );
+    // After THE VIRTUAL → bottom-left corner → left edge → arrow into COMPOSE gap
+    addPath(
+      `M ${botG ? botG.x : w * 0.35} ${y1} L ${x0 + r} ${y1} A ${r} ${r} 0 0 1 ${x0} ${y1 - r} L ${x0} ${leftG ? leftG.b : h * 0.65}`,
+      true
+    );
+    // After COMPOSE → back to top-left corner start (no arrow; loop closes into first segment)
+    addPath(
+      `M ${x0} ${leftG ? leftG.y : h * 0.35} L ${x0} ${y0 + r}`,
+      false
+    );
+  }
+
+  paintFrameBorder();
+  window.addEventListener('resize', paintFrameBorder);
+  if(typeof ResizeObserver !== 'undefined'){
+    new ResizeObserver(paintFrameBorder).observe(document.querySelector('.frame'));
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(paintFrameBorder);
+  }
+  requestAnimationFrame(paintFrameBorder);
+
+  // ---- Geometry (in the 900x1680 spine viewBox) ----
+  // Three equal vertical bands of 560: Institution 0–560, Extitution 560–1120, Substrate 1120–1680
+  // Each illustration is centered within its band.
+  const apex = { x: 450, y: 280 }; // center of the institution square
+
+  // Extitution cluster: 11 overlapping dashed circles w/ plus marks, irregular scatter
+  // Vertically centered in the middle band (560–1120, center ≈ 840).
+  const clusterPoints = [
+    {x: 210, y: 772, r: 78},  {x: 355, y: 712, r: 118}, {x: 520, y: 732, r: 62},  {x: 660, y: 752, r: 100},
+    {x: 300, y: 862, r: 132}, {x: 470, y: 832, r: 70},  {x: 610, y: 882, r: 90},
+    {x: 200, y: 972, r: 68},  {x: 400, y: 982, r: 105}, {x: 560, y: 1002, r: 80}, {x: 715, y: 912, r: 58}
+  ];
+
+  const clusterGroup = document.getElementById('extCluster');
+  const clusterEls = [];
+  clusterPoints.forEach(p => {
+    const circle = document.createElementNS(svgNS,'circle');
+    circle.setAttribute('cx', p.x);
+    circle.setAttribute('cy', p.y);
+    circle.setAttribute('r', p.r);
+    circle.setAttribute('fill','none');
+    circle.setAttribute('stroke','var(--line-dim)');
+    circle.setAttribute('stroke-width','4');
+    circle.setAttribute('stroke-dasharray','5 5');
+    clusterGroup.appendChild(circle);
+    clusterEls.push(circle);
+
+    const s = 9;
+    const plus = document.createElementNS(svgNS,'path');
+    plus.setAttribute('d', `M ${p.x-s} ${p.y} H ${p.x+s} M ${p.x} ${p.y-s} V ${p.y+s}`);
+    plus.setAttribute('stroke','var(--green)');
+    plus.setAttribute('stroke-width','2');
+    plus.setAttribute('stroke-linecap','round');
+    clusterGroup.appendChild(plus);
+    clusterEls.push(plus);
+  });
+
+  // Substrate origins: randomly distributed interior points across the blob,
+  // then farthest-point sampled so each connector starts from a distinct place.
+  const substrateOrigin = { x: 90, y: 1231 };
+  const substrateScale = 0.75;
+  const substratePathEl = document.getElementById('substratePath');
+  const hitCtx = document.createElement('canvas').getContext('2d');
+  const substratePath2D = new Path2D(substratePathEl.getAttribute('d'));
+  const bb = substratePathEl.getBBox();
+  const centroidLocal = { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 };
+
+  function isInsideSubstrate(lx, ly){
+    return hitCtx.isPointInPath(substratePath2D, lx, ly);
+  }
+
+  function toWorld(lx, ly){
+    return {
+      x: substrateOrigin.x + lx * substrateScale,
+      y: substrateOrigin.y + ly * substrateScale
+    };
+  }
+
+  // Seeded PRNG so the scatter is stable across reloads but still organic
+  function mulberry32(seed){
+    return function(){
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const rand = mulberry32(0x0E1E5);
+
+  // Rejection-sample a pool of clearly-interior points
+  const interiorPool = [];
+  const edgePad = 10;
+  const neighborPad = 14;
+  for(let attempt = 0; attempt < 1200 && interiorPool.length < 240; attempt++){
+    const lx = bb.x + edgePad + rand() * Math.max(1, bb.width - edgePad * 2);
+    const ly = bb.y + edgePad + rand() * Math.max(1, bb.height - edgePad * 2);
+    if(!isInsideSubstrate(lx, ly)) continue;
+    // Require a small neighborhood inside so we avoid thin boundary lobes
+    if(
+      isInsideSubstrate(lx - neighborPad, ly) &&
+      isInsideSubstrate(lx + neighborPad, ly) &&
+      isInsideSubstrate(lx, ly - neighborPad) &&
+      isInsideSubstrate(lx, ly + neighborPad)
+    ){
+      interiorPool.push({ x: lx, y: ly });
+    }
+  }
+
+  function pickSpreadOrigins(n){
+    if(!interiorPool.length){
+      return Array.from({ length: n }, () => ({ ...centroidLocal }));
+    }
+    const picks = [];
+    picks.push(interiorPool[Math.floor(rand() * interiorPool.length)]);
+    while(picks.length < n){
+      let best = interiorPool[0];
+      let bestDist = -1;
+      for(const candidate of interiorPool){
+        let nearest = Infinity;
+        for(const p of picks){
+          const d = Math.hypot(candidate.x - p.x, candidate.y - p.y);
+          if(d < nearest) nearest = d;
+        }
+        if(nearest > bestDist){
+          bestDist = nearest;
+          best = candidate;
+        }
+      }
+      picks.push(best);
+    }
+    return picks;
+  }
+
+  const spreadOrigins = pickSpreadOrigins(clusterPoints.length).map(p => toWorld(p.x, p.y));
+  // Shuffle assignment so lines criss-cross between scattered origins and machinic points
+  const originOrder = spreadOrigins.map((_, i) => i);
+  for(let i = originOrder.length - 1; i > 0; i--){
+    const j = Math.floor(rand() * (i + 1));
+    const tmp = originOrder[i];
+    originOrder[i] = originOrder[j];
+    originOrder[j] = tmp;
+  }
+
+  // ---- Draw connector lines: institution center -> cluster points (straight) ----
+  const linesUpper = document.getElementById('linesUpper');
+  const upperPaths = [];
+  clusterPoints.forEach(p => {
+    const path = document.createElementNS(svgNS,'path');
+    path.setAttribute('d', `M ${apex.x} ${apex.y} L ${p.x} ${p.y}`);
+    path.setAttribute('stroke','var(--line-dim)');
+    linesUpper.appendChild(path);
+    upperPaths.push(path);
+  });
+
+  // ---- Draw connector lines: inside substrate -> machinic points ----
+  // Organic S-curves with alternating lateral sway so paths weave / criss-cross.
+  const linesLower = document.getElementById('linesLower');
+  const lowerPaths = [];
+  clusterPoints.forEach((p, i) => {
+    const origin = spreadOrigins[originOrder[i]];
+    const dx = p.x - origin.x;
+    const dy = p.y - origin.y;
+
+    // Unit perpendicular (horizontal weave for mostly-vertical connectors)
+    const nx = -dy / (Math.hypot(dx, dy) || 1);
+    const ny = dx / (Math.hypot(dx, dy) || 1);
+
+    // Alternate side + vary amplitude so neighboring curves cross
+    const side = (i % 2 === 0) ? 1 : -1;
+    const amp = 110 + (i % 5) * 36 + (i % 3) * 18;
+    const sway1 = amp * side;
+    const sway2 = -amp * (0.7 + (i % 4) * 0.08) * side;
+
+    const t1 = 0.22 + (i % 3) * 0.05;
+    const t2 = 0.58 + (i % 4) * 0.04;
+
+    const c1x = origin.x + dx * t1 + nx * sway1;
+    const c1y = origin.y + dy * t1 + ny * sway1 * 0.25;
+    const c2x = origin.x + dx * t2 + nx * sway2 * 0.35;
+    const c2y = origin.y + dy * t2 + ny * sway2 * 0.1;
+
+    const path = document.createElementNS(svgNS,'path');
+    path.setAttribute('d', `M ${origin.x} ${origin.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p.x} ${p.y}`);
+    path.setAttribute('stroke','var(--line-dim)');
+    linesLower.appendChild(path);
+    lowerPaths.push(path);
+  });
+
+  // ---- Prep stroke reveal ----
+  function prep(path){
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.dataset.len = len;
+  }
+  upperPaths.forEach(prep);
+  lowerPaths.forEach(prep);
+
+  const substratePath = document.getElementById('substratePath');
+  // Keep the dashed stroke for the whole reveal (fade in instead of solid draw-on)
+  substratePath.style.strokeDasharray = '6 6';
+  substratePath.style.strokeDashoffset = '0';
+  substratePath.style.opacity = 0;
+  substratePath.style.transition = 'opacity 1.8s ease';
+
+  const instSquare = document.getElementById('instSquare');
+  const instInner = document.getElementById('instInner');
+  [instSquare, instInner].forEach(el => {
+    el.style.opacity = 0;
+    el.style.transition = 'opacity 0.9s ease';
+  });
+
+  clusterEls.forEach(el => { el.style.opacity = 0; el.style.transition = 'opacity 0.6s ease'; });
+
+  const infoInstitution = document.getElementById('infoInstitution');
+  const infoExtitution = document.getElementById('infoExtitution');
+  const infoSubstrate = document.getElementById('infoSubstrate');
+  const quoteInstitution = document.getElementById('quoteInstitution');
+  const quoteExtitution = document.getElementById('quoteExtitution');
+  const quoteSubstrate = document.getElementById('quoteSubstrate');
+
+  // ---- Reveal sequence functions ----
+  function revealInstitution(){
+    instSquare.style.opacity = 1;
+    setTimeout(()=>{ instInner.style.opacity = 1; }, 180);
+    upperPaths.forEach((p,i)=>{
+      setTimeout(()=>{
+        p.style.transition = 'stroke-dashoffset 1s ease';
+        p.style.strokeDashoffset = 0;
+      }, i*55);
+    });
+    infoInstitution.classList.add('visible');
+    quoteInstitution.classList.add('visible');
+  }
+
+  function revealExtitution(){
+    clusterEls.forEach((el,i)=>{
+      setTimeout(()=>{ el.style.opacity = 1; }, i*40);
+    });
+    infoExtitution.classList.add('visible');
+    quoteExtitution.classList.add('visible');
+  }
+
+  function revealSubstrate(){
+    lowerPaths.forEach((p,i)=>{
+      setTimeout(()=>{
+        p.style.transition = 'stroke-dashoffset 1s ease';
+        p.style.strokeDashoffset = 0;
+      }, i*55);
+    });
+    setTimeout(()=>{
+      substratePath.style.opacity = 1;
+    }, 300);
+    infoSubstrate.classList.add('visible');
+    quoteSubstrate.classList.add('visible');
+  }
+
+  // ---- Plain-language crossfade toggles (height preserved) ----
+  document.querySelectorAll('.info-block .plain-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const block = btn.closest('.info-block');
+      const open = block.classList.toggle('is-plain');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+
+  // ---- Trigger all reveals when the frame scrolls into view (staggered), only once ----
+  let triggered = false;
+  const frameEl = document.querySelector('.frame');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting && !triggered){
+        triggered = true;
+        revealInstitution();
+        setTimeout(revealExtitution, 500);
+        setTimeout(revealSubstrate, 1300);
+        io.disconnect();
+      }
+    });
+  }, { threshold: 0.15 });
+  io.observe(frameEl);
+})();
+</script>
+</body>
+</html>

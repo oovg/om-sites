@@ -2,6 +2,8 @@
 import Base from '../layouts/Base.astro'
 import ConceptList from '../components/ConceptList.astro'
 import { entriesOf } from '@om/content'
+import Header from '../components/Header.astro'
+import { bespokePages, bespokeParts } from '../bespoke'
 import { conceptsUsed, demote, md, names, om, sectionsOf } from '../lib/nb'
 
 export function getStaticPaths() {
@@ -9,9 +11,17 @@ export function getStaticPaths() {
 }
 const o = om()
 const nb = entriesOf(o, 'notebook').find((n) => n.slug === Astro.params.notebook)!
+const bespoke = bespokePages[nb.slug] ? bespokeParts(bespokePages[nb.slug]) : undefined
 const sections = sectionsOf(nb, o)
 const used = conceptsUsed(nb, o)
 ---
+{bespoke ? (
+  <>
+    <Fragment set:html={bespoke.before} />
+    <Header current={nb.slug} />
+    <Fragment set:html={bespoke.after} />
+  </>
+) : (
 <Base title={nb.data.title} description={nb.data.summary} current={nb.slug}>
   <section class="hero">
     <div class="eyebrow mono">{names(o).hub.toUpperCase()}</div>
@@ -36,3 +46,4 @@ const used = conceptsUsed(nb, o)
   </main>
   <div class="nb-concepts"><ConceptList items={used} title="Concepts in this notebook" /></div>
 </Base>
+)}

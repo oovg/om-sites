@@ -3,6 +3,9 @@
  * markup exists there: hero, eyebrow, scroll-hint, glossary, footer, site-credit). New parts
  * (header, text, contents, concept cards) use the same type styles. Tokens: packages/ui/tokens.css.
  */
+@import './fonts.css';
+@import './header.css';
+
 *{ box-sizing: border-box; margin: 0; padding: 0; }
 
 body{
@@ -19,45 +22,6 @@ body{
 a{ color: inherit; }
 img{ max-width: 100%; height: auto; }
 :focus-visible{ outline: 1px solid var(--cyan); outline-offset: 3px; }
-
-/* ============ HEADER (new: shared across pages) ============ */
-.nb-header{
-  border-bottom: 1px solid var(--grid-strong);
-  background: var(--bg-deep);
-}
-.nb-header-inner{
-  max-width: var(--wide-col);
-  margin: 0 auto;
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-.nb-brand{
-  letter-spacing: 0.3em;
-  color: var(--cyan);
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.nb-menu{ margin-left: auto; position: relative; }
-.nb-menu > summary{ list-style: none; cursor: pointer; letter-spacing: 0.3em; color: var(--muted); transition: color 0.2s ease; }
-.nb-menu > summary:hover, .nb-menu[open] > summary{ color: var(--cyan); }
-.nb-menu > summary::-webkit-details-marker{ display: none; }
-.nb-nav{
-  position: absolute; top: 100%; right: 0; z-index: 10; margin-top: 14px;
-  display: flex; flex-direction: column; gap: 22px;
-  width: min(420px, calc(100vw - 48px)); padding: 20px 24px;
-  background: var(--bg-deep); border: 1px solid var(--grid-strong);
-}
-.nb-group{ display: flex; flex-direction: column; gap: 10px; }
-.nb-group-label{ font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
-.nb-nav a{ color: var(--paper); text-decoration: none; line-height: 1.5; transition: color 0.2s ease; }
-.nb-nav a:hover{ color: var(--cyan); }
-.nb-nav a[aria-current='page']{ color: var(--cyan); }
 
 /* ============ HERO ============ */
 .hero{
