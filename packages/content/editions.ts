@@ -367,6 +367,15 @@ async function generateInto(om: OuterMind, m: Entry<'media'>, plan: ShopPlan, tm
   }
   if (need.has('pdf')) {
     writeFileSync(join(work, 'header.typ'), typstHeader(t))
+    // The cover (supplied, else generated) as a full-bleed first page; numbering starts after it.
+    const coverPage = coverPath
+      ? [
+          `#page(margin: 0pt, numbering: none)[#image("${coverPath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}", width: 100%, height: 100%, fit: "cover")]`,
+          '#counter(page).update(1)',
+          '',
+        ].join('\n')
+      : ''
+    if (coverPage) writeFileSync(join(work, 'cover-page.typ'), coverPage)
     run(
       'pandoc',
       [
@@ -376,6 +385,7 @@ async function generateInto(om: OuterMind, m: Entry<'media'>, plan: ShopPlan, tm
         `--pdf-engine-opt=--font-path=${FONTS}`,
         '--pdf-engine-opt=--ignore-system-fonts',
         '--include-in-header', join(work, 'header.typ'),
+        ...(coverPage ? ['--include-in-header', join(work, 'cover-page.typ'), '--pdf-engine-opt=--root=/'] : []),
         '-V', `mainfont=${t['ed-font-body']}`,
         '-V', `fontsize=${t['ed-size-body']}`,
         '-V', 'papersize=a5',
