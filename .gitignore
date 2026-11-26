@@ -8,3 +8,4 @@ snapshots/
 # Pagefind index and Astro type cache
 sites/*/.astro/
 .DS_Store
+.outer-mind/
