@@ -58,7 +58,7 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - **Item page:** adds a "Licence" row (entry `licence`, else `site.md`'s). The media entry's body is the longer text (old "abstract"), rendered as markdown. "View in Browser" goes to the hub page of the transmission or book.
 - **Covers:** an item without `cover` gets a generated typographic cover (instead of the old title-on-black placeholder).
 - **URLs:** item pages at `/media/<media slug>`, edition files at `/media/<slug>/<slug>.<ext>`, works' files at `/assets/<name>`. No redirects from the old `/media/<title slug>` or `/assets/<slug>.<ext>` URLs (decided by vengi, 2026-11-26).
-- **Donate:** the old x402 wallet flow needs server routes and stays on a separate server (decided by vengi, 2026-11-26). The shop's Donate links use `OM_SHOP_DONATE_URL`; until that is set they go to the hub's `/donate`. *URL pending.*
+- **Donate:** the old x402 wallet flow needs server routes and stays on a separate server (decided by vengi, 2026-11-26). For now the shop's Donate links go to the hub's `/donate` page (decided by vengi, 2026-11-26); setting `OM_SHOP_DONATE_URL` points them at the x402 server later.
 
 ## Editions
 

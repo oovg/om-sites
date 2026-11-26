@@ -8,4 +8,5 @@ summary: "Monthly gathering around the decentralized web, last Wednesdays at Ron
 format: Gathering
 location: "Rontoms, Portland, Oregon"
 project: dweb-meetup
+image: assets/q3-2026-dweb.jpg
 ---
