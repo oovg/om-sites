@@ -63,6 +63,13 @@ const firstCopy = !hasHero ? rest[0] : undefined
     )}
     {rest.map((s) => {
       if (isSlot(s.heading)) return <Slot name={s.heading} intro={s.nodes.length ? html(s.nodes) : undefined} />
+      // A copy section headed "Donate" is the old untitled inverted band (DonateBlock).
+      if (s.heading === 'Donate')
+        return (
+          <div class="band" id="donate">
+            <div class="band-inner" set:html={html(s.nodes)} />
+          </div>
+        )
       const { before, subs } = subsections(s.nodes)
       const id = s.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       if (subs.length)
