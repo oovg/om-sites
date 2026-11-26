@@ -2,6 +2,11 @@
 type: media
 title: "Friends of the Outside"
 slug: friends-of-the-outside
+edition_of: friends-of-the-outside-booklet
+formats:
+  - "epub"
+  - "pdf"
+  - "md"
 date: 2023-07-28
 summary: "Gonzo Philosophical booklet"
 subtitle: "Control, Substrates, and the Afterlife of DAOs"

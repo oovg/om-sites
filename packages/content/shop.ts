@@ -1,12 +1,12 @@
 /**
- * The media shop's view of the outer mind: one item per `media` entry (works and editions alike),
+ * The media shop's view of the outer mind: one item per `media` entry, with its supplied and generated files,
  * with cover, files and the online reading link resolved. Feeds the mediashop pages, the OPDS
  * catalog (/index.json, the path the old shop used), RSS and /shop.json.
  */
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { mediaType } from './assets.ts'
-import { EDITION_LANGUAGE, edition, type Edition, FORMAT_TYPES, type Format } from './editions.ts'
+import { EDITION_LANGUAGE, FORMAT_TYPES, type Format, shopFiles } from './editions.ts'
 import type { Entry, OuterMind } from './load.ts'
 import { byDateDesc, entriesOf } from './load.ts'
 import { assetUrl, hrefOf, siteBase } from './links.ts'
@@ -36,42 +36,30 @@ export interface ShopItem {
   files: ShopFile[]
   /** Where the piece can be read in a browser (the hub page of the transmission or book). */
   readOnline?: string
-  edition?: Edition
+  /** The transmission or book it's made from, and the generated cover if there is one. */
+  edition: { source: Entry<'transmission'> | Entry<'collection'>; cover?: { path: string; href: string } }
+  /** Which pieces were supplied (custom files) rather than generated. */
+  supplied: string[]
 }
 
 const LABELS: Record<Format, string> = { epub: 'EPUB', pdf: 'PDF', md: 'Markdown' }
 const ORDER: Format[] = ['epub', 'pdf', 'md']
 
-function formatOf(file: string): Format | undefined {
-  const ext = file.split('.').pop()?.toLowerCase()
-  return ext === 'epub' || ext === 'pdf' || ext === 'md' ? ext : undefined
-}
-
 export async function shopItem(om: OuterMind, m: Entry<'media'>): Promise<ShopItem> {
-  const ed = m.data.edition_of ? await edition(om, m) : undefined
-  const src = ed?.source
+  const { plan, files: pieces } = shopFiles(om, m)
+  const src = plan.source!
   const author = (m.data.author ?? (src?.data as { author?: string[] } | undefined)?.author ?? []).join(', ')
 
-  let files: ShopFile[]
-  if (ed) {
-    files = ed.files.map((f) => ({ format: f.format, label: `Download ${LABELS[f.format]}`, href: f.href, type: FORMAT_TYPES[f.format] }))
-  } else {
-    files = Object.entries(m.data.files ?? {})
-      .filter((e): e is [string, string] => typeof e[1] === 'string')
-      .map(([k, ref]) => {
-        const format = (formatOf(ref) ?? k) as Format
-        return { format, label: `Download ${LABELS[format]}`, href: assetUrl(ref)!, type: FORMAT_TYPES[format] ?? mediaType(ref) }
-      })
-  }
+  // Supplied or generated, whichever exists: `pnpm check` reports anything missing.
+  const ready = pieces.filter((p) => p.state !== 'missing' && existsSync(p.path))
+  const files: ShopFile[] = ready
+    .filter((p) => p.piece !== 'cover')
+    .map((p) => ({ format: p.piece as Format, label: `Download ${LABELS[p.piece as Format]}`, href: p.href, type: FORMAT_TYPES[p.piece as Format] }))
   files.sort((a, b) => ORDER.indexOf(a.format) - ORDER.indexOf(b.format))
 
-  let cover: ShopItem['cover']
-  if (m.data.cover) {
-    const path = join(om.publicDir, m.data.cover)
-    if (existsSync(path)) cover = { href: assetUrl(m.data.cover)!, path, type: mediaType(path) }
-  } else if (ed?.cover) {
-    cover = { href: ed.cover.href, path: ed.cover.path, type: 'image/png' }
-  }
+  const c = ready.find((p) => p.piece === 'cover')
+  const cover: ShopItem['cover'] = c ? { href: c.state === 'supplied' ? assetUrl(m.data.cover!)! : c.href, path: c.path, type: mediaType(c.path) } : undefined
+  const generatedCover = c && c.state !== 'supplied' ? { path: c.path, href: c.href } : undefined
 
   // A transmission with a body (or a book) can be read on the hub.
   let readOnline: string | undefined
@@ -93,7 +81,8 @@ export async function shopItem(om: OuterMind, m: Entry<'media'>): Promise<ShopIt
     cover,
     files,
     readOnline,
-    edition: ed,
+    edition: { source: src, cover: generatedCover },
+    supplied: pieces.filter((p) => p.state === 'supplied').map((p) => p.piece),
   }
 }
 
@@ -101,7 +90,7 @@ export async function shopItem(om: OuterMind, m: Entry<'media'>): Promise<ShopIt
 export async function shopItems(om: OuterMind): Promise<ShopItem[]> {
   const media = entriesOf(om, 'media').sort(byDateDesc)
   const out: ShopItem[] = []
-  for (const m of media) out.push(await shopItem(om, m)) // sequential: editions shell out to pandoc
+  for (const m of media) out.push(await shopItem(om, m))
   return out
 }
 

@@ -2,6 +2,9 @@
 type: media
 title: "GFEL"
 slug: gfel
+edition_of: gfel-poster
+formats:
+  - "pdf"
 date: 2024-04-12
 summary: "Poster by The Open Machine: GFEL."
 author:

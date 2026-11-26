@@ -2,6 +2,9 @@
 type: media
 title: "Undercapital"
 slug: undercapital
+edition_of: undercapital-zine
+formats:
+  - "pdf"
 date: 2024-09-10
 summary: "Zine by The Open Machine: Undercapital."
 author:
