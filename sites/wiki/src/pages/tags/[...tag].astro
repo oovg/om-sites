@@ -1,0 +1,14 @@
+---
+import Base from '../../layouts/Base.astro'
+import EntryList from '../../components/EntryList.astro'
+import { om, tags } from '../../lib/wiki'
+export function getStaticPaths() {
+  return tags(om()).map((t) => ({ params: { tag: t.tag }, props: { tag: t.tag } }))
+}
+const t = tags(om()).find((x) => x.tag === Astro.props.tag)!
+---
+<Base title={`#${t.tag}`} current="/tags" right={false}>
+  <nav class="w-crumbs"><a href="/">Home</a><span>›</span><a href="/tags/">Tags</a><span>›</span>#{t.tag}</nav>
+  <h1 class="w-h1 h" data-pagefind-meta="title">#{t.tag}</h1>
+  <EntryList entries={t.entries} />
+</Base>

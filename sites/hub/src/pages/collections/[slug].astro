@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro'
+import PostHead from '../../components/PostHead.astro'
+import { assetUrl, authorLine, collectionIntro, href, md, om } from '../../lib/hub'
+import { entriesOf, formatShort } from '@om/content'
+
+export function getStaticPaths() {
+  return entriesOf(om(), 'collection').map((c) => ({ params: { slug: c.slug } }))
+}
+const o = om()
+const c = entriesOf(o, 'collection').find((x) => x.slug === Astro.params.slug)!
+const shop = c.data.in_mediashop ? o.bySlug.get(c.data.in_mediashop) : undefined
+const pieces = c.data.essays.map((s) => o.bySlug.get(s)).filter((e) => e !== undefined)
+const img = assetUrl(c.data.image)
+---
+<Base title={c.data.title} description={c.data.summary} image={img} shell="post" footer={false}>
+  <div class="post">
+    <PostHead date={c.data.date} title={c.data.title} by={authorLine(c) || undefined} shopHref={shop && href(shop, o)} />
+    {img && <img class="post-image" src={img} alt={c.data.title} />}
+    <div class="rule"><div></div></div>
+    <div class="markdown" set:html={md(collectionIntro(c), o)} />
+    {pieces.map((t) => (
+      <div class="tpost">
+        <p class="tpost-date"><i>{formatShort(t.data.date)}</i></p>
+        <a href={href(t, o)}><div class="markdown"><h1>{t.data.title}</h1></div></a>
+        <div class="markdown"><p>{t.data.summary}</p></div>
+        <a href={href(t, o)}>Read More</a>
+      </div>
+    ))}
+  </div>
+</Base>

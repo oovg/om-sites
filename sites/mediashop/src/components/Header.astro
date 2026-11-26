@@ -1,0 +1,51 @@
+---
+import { donateUrl, hubTitle, hubUrl } from '../lib/shop'
+const path = Astro.url.pathname
+const links = [
+  { href: hubUrl(), label: 'About', external: true, active: false },
+  { href: '/', label: 'Media', external: false, active: path === '/' || path.startsWith('/media') },
+  { href: donateUrl(), label: 'Donate', external: /^https?:/.test(donateUrl()), active: false },
+]
+---
+<header class="hdr" data-shop-menu>
+  <div class="container hdr-inner">
+    <a href="/" class="hdr-home">
+      <p class="hdr-kicker">{hubTitle()}</p>
+      <p class="hdr-title">Media Shop</p>
+    </a>
+    <nav aria-label="Primary" class="hdr-nav">
+      <button type="button" class="label hdr-toggle" aria-expanded="false" aria-controls="mobile-nav" data-toggle>
+        <span class="hdr-bars" aria-hidden="true"><span></span><span></span></span>
+        <span data-toggle-label>Menu</span>
+      </button>
+      <ul class="hdr-links">
+        {links.map((l) => (
+          <li><a href={l.href} class:list={['label', { 'is-active': l.active }]} {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+  <nav id="mobile-nav" aria-label="Primary mobile" class="mnav" hidden>
+    <ul class="container">
+      {links.map((l) => (
+        <li><a href={l.href} class:list={['label', { 'is-active': l.active }]} data-close {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{l.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+</header>
+<script>
+  // Mobile menu, as in the old Header: Menu/Close toggle.
+  const root = document.querySelector<HTMLElement>('[data-shop-menu]')
+  const btn = root?.querySelector<HTMLButtonElement>('[data-toggle]')
+  const nav = root?.querySelector<HTMLElement>('#mobile-nav')
+  const label = root?.querySelector<HTMLElement>('[data-toggle-label]')
+  if (btn && nav && label) {
+    const set = (open: boolean) => {
+      nav.hidden = !open
+      btn.setAttribute('aria-expanded', String(open))
+      label.textContent = open ? 'Close' : 'Menu'
+    }
+    btn.addEventListener('click', () => set(nav.hidden))
+    nav.querySelectorAll('[data-close]').forEach((a) => a.addEventListener('click', () => set(false)))
+  }
+</script>

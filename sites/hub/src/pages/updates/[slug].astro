@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro'
+import QSection from '../../components/QSection.astro'
+import QItem from '../../components/QItem.astro'
+import { assetUrl, href, md, om, quarterlies } from '../../lib/hub'
+import { parseDigest } from '../../lib/digest'
+import { formatShort } from '@om/content'
+
+export function getStaticPaths() {
+  return quarterlies(om()).map((q) => ({ params: { slug: q.slug } }))
+}
+const o = om()
+const q = quarterlies(o).find((x) => x.slug === Astro.params.slug)!
+const { intro, sections } = parseDigest(q, o)
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+---
+<Base title={q.data.title} description={q.data.summary ?? ''}>
+  <div class="q-hero">
+    <h1 class="h">{q.data.title}</h1>
+    <div class="q-hero-body" set:html={md(intro, o)} />
+  </div>
+  {sections.map((s) => (
+    <QSection
+      id={slugify(s.title)}
+      title={s.title}
+      href={s.project && href(s.project, o)}
+      intro={s.status ? `<p>Status: ${s.status}</p>` : undefined}
+    >
+      {s.items.map((it) => {
+        if (it.kind === 'update')
+          return (
+            <QItem badge={it.statusChange ? 'Status change' : 'Project update'} badgeStrong={it.statusChange} title={formatShort(it.date)}>
+              {it.statusChange ? <p><strong>{it.text}</strong></p> : <p>{it.text}</p>}
+            </QItem>
+          )
+        if (it.kind === 'entry') {
+          const img = it.entry && assetUrl((it.entry.data as any).image ?? (it.entry.data as any).cover)
+          return (
+            <QItem
+              id={it.entry?.slug}
+              badge={cap(it.type)}
+              badgeStrong
+              title={it.title}
+              href={it.entry && href(it.entry, o)}
+              image={img}
+              beside={['transmission', 'media', 'collection'].includes(it.entry?.type ?? '')}
+            >
+              {it.facts && <p>{cap(it.facts)}</p>}
+              {it.entry?.data.summary && <p>{it.entry.data.summary}</p>}
+            </QItem>
+          )
+        }
+        return <QItem><Fragment set:html={it.html} /></QItem>
+      })}
+    </QSection>
+  ))}
+</Base>

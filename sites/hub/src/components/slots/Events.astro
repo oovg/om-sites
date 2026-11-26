@@ -1,0 +1,31 @@
+---
+import SlotHeader from '../SlotHeader.astro'
+import { assetUrl, events, om } from '../../lib/hub'
+interface Props { heading: string; intro?: string }
+const { heading, intro } = Astro.props
+const all = events(om())
+const gallery = all.filter((e) => e.data.image)
+const half = Math.ceil(all.length / 2)
+const cols = [all.slice(0, half), all.slice(half)]
+---
+<SlotHeader heading={heading} intro={intro} id="events" variant="events" />
+{gallery.length > 0 && (
+  <div class="gallery-wrap">
+    <div class="rail">
+      {gallery.map((e) => (
+        <div class="rail-cell gcell"><img src={assetUrl(e.data.image)} alt={e.data.title} loading="lazy" /></div>
+      ))}
+    </div>
+  </div>
+)}
+<div class="elist">
+  {cols.map((col) => (
+    <div class="elist-col">
+      {col.map((e) => (
+        <p>
+          {e.data.format && `${e.data.format} - `}<i>{e.data.title}</i>{e.data.location && `, ${e.data.location}`} {e.data.date.slice(0, 4)}
+        </p>
+      ))}
+    </div>
+  ))}
+</div>

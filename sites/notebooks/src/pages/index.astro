@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro'
+import { names, notebooks } from '../lib/nb'
+const { frameworks, working } = notebooks()
+const n = names()
+const groups = [
+  { title: 'Frameworks', items: frameworks },
+  { title: 'Notebooks', items: working },
+].filter((g) => g.items.length)
+---
+<Base>
+  <section class="hero hero--short">
+    <div class="eyebrow mono">{n.hub.toUpperCase()}</div>
+    <h1>{n.title}</h1>
+  </section>
+  <main class="nb-index">
+    {groups.map((g) => (
+      <section>
+        <h2 class="glossary-title">{g.title}</h2>
+        <dl class="glossary-list glossary-list--single">
+          {g.items.map((nb) => (
+            <div class="glossary-item">
+              <dt><a href={`/${nb.slug}`}>{nb.data.title}</a></dt>
+              <dd>{nb.data.summary}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))}
+    <section>
+      <h2 class="glossary-title">Glossary</h2>
+      <a class="glossary-link" href="/glossary">All concepts →</a>
+    </section>
+  </main>
+</Base>

@@ -1,0 +1,12 @@
+---
+/** Section from the old /q3-2026 page: title + intro left, item cards right. */
+interface Props { title: string; href?: string; intro?: string; id?: string }
+const { title, href, intro, id } = Astro.props
+---
+<div class="q-section" id={id}>
+  <div class="q-left">
+    <h2 class="h">{href ? <a href={href}>{title}</a> : title}</h2>
+    {intro && <div class="q-intro" set:html={intro} />}
+  </div>
+  <div class="q-right"><slot /></div>
+</div>

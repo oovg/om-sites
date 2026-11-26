@@ -1,0 +1,125 @@
+---
+/**
+ * Renders a hub `page` entry: its `##` sections in order. `## Hero` first → the old home layout
+ * (hero, then every section full width). Otherwise → the old document layout (/donate): the first
+ * section is the page title and lead, later copy sections are titled blocks. Slot headings are
+ * filled by the build wherever they appear.
+ */
+import type { Entry } from '@om/content'
+import { imagesIn, isSlot, splitSections } from '@om/content'
+import Slot from './slots/Slot.astro'
+import SectionB from './SectionB.astro'
+import { opts, om } from '../lib/hub'
+import { html, isImageOnly, isLinkOnly, subsections } from '../lib/render'
+
+interface Props { page: Entry<'page'> }
+const { page } = Astro.props
+const o = om()
+const sections = splitSections(page.body, opts(o))
+const hasHero = sections[0]?.heading === 'Hero'
+const hero = hasHero ? sections[0] : undefined
+const rest = (hasHero ? sections.slice(1) : sections).filter((s) => s.heading)
+
+// Hero parts: images (front, back), text paragraphs, and a trailing link-only paragraph as the banner.
+const heroImages = hero ? imagesIn(hero.nodes) : []
+const heroText = hero ? hero.nodes.filter((n) => !isImageOnly(n) && !isLinkOnly(n)) : []
+const heroCtaNode = hero?.nodes.findLast((n) => isLinkOnly(n))
+const heroCta =
+  heroCtaNode && heroCtaNode.type === 'paragraph' && heroCtaNode.children.find((c) => c.type === 'link')
+const ctaText = heroCta && heroCta.type === 'link' ? heroCta.children.map((c: any) => c.value ?? '').join('') : ''
+
+// Document layout: group consecutive copy sections between slots.
+type Block = { kind: 'slot'; name: any; intro?: string } | { kind: 'copy'; items: typeof rest }
+const blocks: Block[] = []
+for (const s of rest) {
+  if (isSlot(s.heading)) blocks.push({ kind: 'slot', name: s.heading, intro: s.nodes.length ? html(s.nodes) : undefined })
+  else {
+    const last = blocks.at(-1)
+    if (last?.kind === 'copy') last.items.push(s)
+    else blocks.push({ kind: 'copy', items: [s] })
+  }
+}
+const firstCopy = !hasHero ? rest[0] : undefined
+---
+{hasHero ? (
+  <>
+    <div class="hero">
+      {heroImages[0] && (
+        <div class="hero-col"><img src={heroImages[0].src} alt={heroImages[0].alt} sizes="(max-width: 768px) 100vw, 50vw" /></div>
+      )}
+      {heroImages[1] && (
+        <div class="hero-col hero-back">
+          <img src={heroImages[1].src} alt={heroImages[1].alt} sizes="50vw" />
+          <div class="hero-text" set:html={html(heroText)} />
+        </div>
+      )}
+    </div>
+    <div class:list={['what-we-do', { 'what-we-do--always': !heroImages[1] }]} id="what-we-do">
+      <h2 class="h">What we do</h2>
+      <Fragment set:html={html(heroText)} />
+    </div>
+    {heroCta && heroCta.type === 'link' && (
+      <a href={heroCta.url} class="cta-banner"><div><p>{ctaText}</p></div></a>
+    )}
+    {rest.map((s) => {
+      if (isSlot(s.heading)) return <Slot name={s.heading} intro={s.nodes.length ? html(s.nodes) : undefined} />
+      // A copy section headed "Donate" is the old untitled inverted band (DonateBlock).
+      if (s.heading === 'Donate')
+        return (
+          <div class="band" id="donate">
+            <div class="band-inner" set:html={html(s.nodes)} />
+          </div>
+        )
+      const { before, subs } = subsections(s.nodes)
+      const id = s.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      if (subs.length)
+        return (
+          <SectionB heading={s.heading} intro={before.length ? html(before) : undefined} id={id}>
+            <div class="pcards">
+              {subs.map((sub) => (
+                <div class="pcard">
+                  <h2 class="h">{sub.title}</h2>
+                  <div class="copy" set:html={html(sub.nodes)} />
+                </div>
+              ))}
+            </div>
+          </SectionB>
+        )
+      return (
+        <SectionB heading={s.heading} id={id}>
+          <div class="copy copy--plain" set:html={html(s.nodes)} />
+        </SectionB>
+      )
+    })}
+  </>
+) : (
+  blocks.map((b) =>
+    b.kind === 'slot' ? (
+      <Slot name={b.name} intro={b.intro} />
+    ) : (
+      <div class="doc">
+        <div class="doc-inner">
+          {b.items.map((s) => {
+            if (s === firstCopy) {
+              const [lead, ...more] = s.nodes
+              const leadIsPara = lead?.type === 'paragraph'
+              return (
+                <>
+                  <h1 class="h doc-title">{s.heading}</h1>
+                  {leadIsPara && <p class="doc-lead" set:html={html([lead]).replace(/^<p>|<\/p>$/g, '')} />}
+                  <div class="doc-text doc-intro" set:html={html(leadIsPara ? more : s.nodes)} />
+                </>
+              )
+            }
+            return (
+              <div class="doc-section">
+                <h2 class="h">{s.heading}</h2>
+                <div class="doc-text" set:html={html(s.nodes)} />
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    ),
+  )
+)}

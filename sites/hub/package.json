@@ -1,0 +1,15 @@
+{
+  "name": "@om/hub",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4401",
+    "build": "astro build",
+    "preview": "astro preview --port 4401"
+  },
+  "dependencies": {
+    "@om/content": "workspace:*",
+    "@om/ui": "workspace:*",
+    "astro": "^5.16.0"
+  }
+}

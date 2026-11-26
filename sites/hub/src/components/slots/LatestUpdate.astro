@@ -1,0 +1,20 @@
+---
+import SectionB from '../SectionB.astro'
+import QItem from '../QItem.astro'
+import { href, om, quarterlies } from '../../lib/hub'
+import { firstParagraph, nodesToHtml, quarterLabel, splitDigest } from '@om/content'
+import { resolveWikilinks } from '@om/content'
+interface Props { heading: string; intro?: string }
+const { heading, intro } = Astro.props
+const o = om()
+const q = quarterlies(o)[0]
+const para = q && firstParagraph(resolveWikilinks(splitDigest(q.body).intro, { om: o, site: 'hub' }))
+---
+<SectionB heading={heading} intro={intro} id="latest-update">
+  {q && (
+    <QItem badge={quarterLabel(q.data.quarter)} badgeStrong title={q.data.title} href={href(q, o)}>
+      {para && <Fragment set:html={nodesToHtml([para])} />}
+      <p><a href={href(q, o)}>Read the update →</a></p>
+    </QItem>
+  )}
+</SectionB>

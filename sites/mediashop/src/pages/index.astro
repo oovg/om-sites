@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro'
+import BookCard from '../components/BookCard.astro'
+import { items } from '../lib/shop'
+const list = await items()
+---
+<Base>
+  <div class="container page">
+    <h1 class="sr-only">Available publications</h1>
+    <ul class="grid">
+      {list.map((item) => <li><BookCard item={item} /></li>)}
+    </ul>
+  </div>
+</Base>

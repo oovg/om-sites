@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro'
+import { om, tags } from '../../lib/wiki'
+const all = tags(om())
+---
+<Base title="Tags" current="/tags" right={false}>
+  <nav class="w-crumbs"><a href="/">Home</a><span>›</span>Tags</nav>
+  <h1 class="w-h1 h" data-pagefind-meta="title">Tags</h1>
+  <ul class="w-entries">
+    {all.map((t) => <li><a class="t" href={`/tags/${t.tag}`}>#{t.tag}</a><div class="m">{t.entries.length} entries</div></li>)}
+  </ul>
+</Base>

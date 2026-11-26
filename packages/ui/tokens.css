@@ -1,0 +1,171 @@
+/*
+ * Design tokens: the one place to restyle. One block per site; the four designs stay separate.
+ * Components use these variables, never raw values.
+ */
+
+/* ---------------------------------------------------------------- hub (theopenmachine.net)
+ * From the old site's Chakra theme (the-open-template/src/theme): semantic colours, Typekit fonts,
+ * Chakra's default type scale with sm/md/lg overridden, 0.25rem spacing unit, md breakpoint 48em.
+ */
+:root[data-site='hub'] {
+  color-scheme: dark;
+  --primary: #f0fdfa;
+  --bg: #000;
+  --muted: #3c3c3c;
+  --midtone: #8c8c8c;
+  --cta-bg: #fff;
+  --cta-fg: #000;
+  --cta-hover: #edf2f7; /* Chakra gray.100 */
+  --focus-ring: 0 0 0 3px rgba(66, 153, 225, 0.6); /* Chakra shadows.outline */
+  --overlay: rgba(0, 0, 0, 0.36); /* Chakra blackAlpha.400 */
+  --burger-hover: rgba(255, 255, 255, 0.1);
+
+  --font-heading: 'polymath-display', sansserif;
+  --font-body: 'adobe-caslon-pro', serif;
+  --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 16px;
+  --fs-md: 18px;
+  --fs-lg: 22px;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+  --fs-4xl: 2.25rem;
+  --fs-5xl: 3rem;
+
+  --lh-body: 1.5;
+  --lh-heading: 1.33; /* Chakra Heading below md */
+  --lh-heading-md: 1.2; /* Chakra Heading from md */
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  --s12: 48px;
+  --s14: 56px;
+  --s16: 64px;
+  --s20: 80px;
+
+  --header-h: 80px;
+  --ease-menu: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-site='hub'] {
+    color-scheme: light;
+    --primary: #282828;
+    --bg: #f0fdfa;
+    --burger-hover: rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* ---------------------------------------------------------------- mediashop (media.theopenmachine.net)
+ * From om-mediashop/src/app/globals.css and its Tailwind v4 utilities (default scale, sm 40rem, md 48rem, lg 64rem).
+ */
+:root[data-site='mediashop'] {
+  color-scheme: dark;
+  --background: #0e0d0c;
+  --foreground: #ece7dc;
+  --muted: #9c9688;
+  --border: #2c2a26;
+  --card: #161513;
+  --paper: #d8d0c0;
+  --scrim: rgba(0, 0, 0, 0.7);
+
+  --font-heading: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  --text-label: 0.7rem;
+  --text-dt: 0.65rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --tracking-tight: -0.025em;
+  --tracking-label: 0.2em;
+  --tracking-button: 0.18em;
+  --tracking-kicker: 0.28em;
+  --max-w: 64rem;
+}
+
+/*
+ * Editions (EPUB, PDF, generated covers). New: the old shop's files were made by hand.
+ * Read by packages/content/editions.ts; changing any value here regenerates every edition.
+ */
+:root {
+  --ed-ink: #1a1917;
+  --ed-paper: #ffffff;
+  --ed-muted: #6b665c;
+  --ed-rule: #d8d0c0;
+  --ed-font-heading: 'Instrument Sans';
+  --ed-font-body: 'Newsreader 16pt 16pt';
+  --ed-size-body: 11pt;
+  --ed-cover-bg: #0e0d0c;
+  --ed-cover-fg: #ece7dc;
+  --ed-cover-muted: #9c9688;
+  --ed-cover-rule: #2c2a26;
+}
+
+/* ---------------------------------------------------------------- notebooks (om-ies.vercel.app)
+ * From om-ies/index.html :root and its rules.
+ */
+:root[data-site='notebooks'] {
+  color-scheme: dark;
+  --bg: #0a1628;
+  --bg-deep: #071120;
+  --grid: rgba(125, 211, 232, 0.055);
+  --grid-strong: rgba(125, 211, 232, 0.12);
+  --line: #cdd9e5;
+  --line-dim: rgba(205, 217, 229, 0.42);
+  --line-faint: rgba(205, 217, 229, 0.22);
+  --cyan: #7dd3e8;
+  --red: #e85c4f;
+  --green: #5cb87a;
+  --blue: #5c9fe8;
+  --paper: #e8edf2;
+  --muted: #8fa3b8;
+  --grid-size: 44px;
+
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --text-col: 720px;
+  --wide-col: 1100px;
+  --narrow: 980px;
+}
+
+/* ---------------------------------------------------------------- wiki (mind.theopenmachine.net)
+ * New design on the hub's base (decided 2026-11-26): hub colours and fonts, a light/dark toggle.
+ * Dark by default, following the system until the reader picks one (data-theme on <html>).
+ */
+:root[data-site='wiki'] {
+  color-scheme: dark;
+  --primary: #f0fdfa;
+  --bg: #000;
+  --muted: #3c3c3c;
+  --midtone: #8c8c8c;
+  --soft: rgba(240, 253, 250, 0.06);
+  --focus-ring: 0 0 0 3px rgba(66, 153, 225, 0.6);
+  --font-heading: 'polymath-display', sansserif;
+  --font-body: 'adobe-caslon-pro', serif;
+  --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --fs-label: 13px;
+  --fs-small: 16px;
+  --fs-body: 18px;
+  --fs-h1: 2.25rem;
+  --header-h: 80px;
+  --col-side: 250px;
+  --col-text: 720px;
+}
+:root[data-site='wiki'][data-theme='light'] { color-scheme: light; --primary: #282828; --bg: #f0fdfa; --soft: rgba(40, 40, 40, 0.06); }
+@media (prefers-color-scheme: light) {
+  :root[data-site='wiki']:not([data-theme='dark']) { color-scheme: light; --primary: #282828; --bg: #f0fdfa; --soft: rgba(40, 40, 40, 0.06); }
+}

@@ -1,0 +1,19 @@
+---
+/** Concepts as glossary rows (old om-ies glossary styling): title links to the glossary entry, summary beside it. */
+import type { Entry } from '@om/content'
+interface Props { items: Entry<'concept'>[]; title: string }
+const { items, title } = Astro.props
+---
+{items.length > 0 && (
+  <section class="glossary" aria-label={title}>
+    <h2 class="glossary-title">{title}</h2>
+    <dl class="glossary-list">
+      {items.map((c) => (
+        <div class="glossary-item">
+          <dt><a href={`/glossary#${c.slug}`}>{c.data.title}</a></dt>
+          <dd>{c.data.summary}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+)}

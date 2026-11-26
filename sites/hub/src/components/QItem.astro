@@ -1,0 +1,30 @@
+---
+/** Item card from the old /q3-2026 page: status badge, italic title (optionally linked), text, image beside or below. */
+interface Props {
+  badge?: string
+  badgeStrong?: boolean
+  title?: string
+  href?: string
+  image?: string
+  imageAlt?: string
+  beside?: boolean
+  id?: string
+}
+const { badge, badgeStrong, title, href, image, imageAlt, beside, id } = Astro.props
+const external = href?.startsWith('http')
+---
+<div class="q-item" id={id}>
+  <div class:list={['q-item-row', { 'q-item-row--beside': beside && image }]}>
+    {image && beside && <div class="q-cover"><img src={image} alt={imageAlt ?? title ?? ''} loading="lazy" /></div>}
+    <div class="q-item-main">
+      {badge && <span class:list={['badge', { 'badge--strong': badgeStrong }]}>{badge}</span>}
+      {title && (
+        <h3 class="h">
+          {href ? <a href={href} {...(external ? { target: '_blank', rel: 'noopener' } : {})}>{title}</a> : title}
+        </h3>
+      )}
+      <div class="q-item-body"><slot /></div>
+    </div>
+  </div>
+  {image && !beside && <div class="q-image"><img src={image} alt={imageAlt ?? title ?? ''} loading="lazy" /></div>}
+</div>

@@ -1,0 +1,11 @@
+---
+import { names, om } from '../lib/nb'
+const n = names()
+const text = om().site?.data.notebooks_footer
+---
+<footer class="footer">
+  {text && <div class="footer-block"><h3>{text}</h3></div>}
+  <p class="site-credit">
+    <a href={n.hubUrl} target="_blank" rel="noopener noreferrer">built with <span class="heart">&lt;3</span> by {n.hub.toLowerCase()}</a>
+  </p>
+</footer>

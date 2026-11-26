@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro'
+import PostHead from '../../components/PostHead.astro'
+import { assetUrl, authorLine, href, md, om, transmissions } from '../../lib/hub'
+import type { Entry } from '@om/content'
+
+export function getStaticPaths() {
+  // A page per transmission that has a body; the others link to their `url`.
+  return transmissions(om()).filter((t) => t.body.trim()).map((t) => ({ params: { slug: t.slug } }))
+}
+const o = om()
+const t = o.bySlug.get(Astro.params.slug!) as Entry<'transmission'>
+const book = t.data.collection ? (o.bySlug.get(t.data.collection) as Entry<'collection'>) : undefined
+const shop = t.data.in_mediashop ? o.bySlug.get(t.data.in_mediashop) : undefined
+const order = book?.data.essays ?? []
+const i = order.indexOf(t.slug)
+const prev = i > 0 ? o.bySlug.get(order[i - 1]) : undefined
+const next = i >= 0 && i < order.length - 1 ? o.bySlug.get(order[i + 1]) : undefined
+const img = assetUrl(t.data.image)
+---
+<Base title={t.data.title} description={t.data.summary} image={img} shell="post" footer={false}>
+  <div class="post">
+    <PostHead
+      date={t.data.date}
+      title={t.data.title}
+      by={authorLine(t) || undefined}
+      shopHref={shop && href(shop, o)}
+      book={book && { title: book.data.title, href: href(book, o) }}
+    />
+    {img && <img class="post-image" src={img} alt={t.data.title} />}
+    <div class="rule"><div></div></div>
+    <div class="markdown" set:html={md(t.body, o)} />
+    {(prev || next) && (
+      <nav class="post-nav" aria-label="Book">
+        {prev && <a class="prev" href={href(prev, o)}>← {prev.data.title}</a>}
+        {next && <a class="next" href={href(next, o)}>{next.data.title} →</a>}
+      </nav>
+    )}
+  </div>
+</Base>

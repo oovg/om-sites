@@ -1,0 +1,23 @@
+---
+/** Dev-only style guide (/_styleguide): hero, contents, prose with every element, concept rows, glossary row. */
+import Base from '../layouts/Base.astro'
+import ConceptList from '../components/ConceptList.astro'
+import { byDateDesc, entriesOf } from '@om/content'
+import { concepts, demote, md, names, om, richness } from '../lib/nb'
+const o = om()
+const rich = [...o.entries].filter((e) => ['notebook', 'section', 'transmission'].includes(e.type)).sort((a, b) => richness(b.body) - richness(a.body))[0]
+const section = entriesOf(o, 'section').sort(byDateDesc)[0]
+---
+<Base title="Style guide">
+  <section class="hero hero--short">
+    <div class="eyebrow mono">{names(o).hub.toUpperCase()}</div>
+    <h1>Style guide</h1>
+    <p class="sub">Dev only. Prose from the richest body in the outer mind, a real section, and concept rows.</p>
+  </section>
+  <main class="nb-body">
+    <nav class="nb-toc"><h2 class="nb-label">Contents</h2><ol><li><a href="#s1">A section</a></li><li><a href="#s2">Richest body</a></li></ol></nav>
+    {section && <section class="nb-section" id="s1"><h2>{section.data.title}</h2><div class="prose" set:html={md(demote(section.body), o)} /></section>}
+    {rich && <section class="nb-section" id="s2"><h2>{rich.data.title}</h2><div class="prose" set:html={md(demote(rich.body), o)} /></section>}
+    <ConceptList items={concepts(o).slice(0, 6)} title="Concepts" />
+  </main>
+</Base>

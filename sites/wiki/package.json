@@ -1,0 +1,19 @@
+{
+  "name": "@om/wiki",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4404",
+    "build": "astro build && pagefind --site ../../dist/wiki --output-subdir pagefind",
+    "preview": "astro preview --port 4404"
+  },
+  "dependencies": {
+    "@om/content": "workspace:*",
+    "@om/ui": "workspace:*",
+    "astro": "^5.16.0",
+    "github-slugger": "^2.0.0"
+  },
+  "devDependencies": {
+    "pagefind": "^1.3.0"
+  }
+}

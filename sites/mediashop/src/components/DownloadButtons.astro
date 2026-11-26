@@ -1,0 +1,47 @@
+---
+import type { ShopFile } from '@om/content'
+import { donateUrl } from '../lib/shop'
+interface Props { files: ShopFile[]; readOnline?: string }
+const { files, readOnline } = Astro.props
+---
+<div class="item-buttons">
+  {readOnline && <a href={readOnline} target="_blank" rel="noopener noreferrer" class="btn btn--lg">View in Browser</a>}
+  {files.map((f) => <a href={f.href} download class="btn btn--lg" data-download>{f.label}</a>)}
+</div>
+<div class="modal" hidden data-modal>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="download-modal-title">
+    <p id="download-modal-title">
+      The Open Machine is a non-profit and provides its media for free. If able, consider making a donation to help sustain our efforts.
+    </p>
+    <div class="modal-actions">
+      <a href={donateUrl()} class="btn btn--lg">Make a Donation →</a>
+      <button type="button" class="btn btn--lg" data-continue>Continue to Media →</button>
+    </div>
+  </div>
+</div>
+<script>
+  // Donation nudge before a download, as in the old DownloadButtons. Without JS the links download directly.
+  const modal = document.querySelector<HTMLElement>('[data-modal]')
+  let pending: string | undefined
+  const close = () => { if (modal) modal.hidden = true; pending = undefined }
+  document.querySelectorAll<HTMLAnchorElement>('[data-download]').forEach((a) =>
+    a.addEventListener('click', (e) => {
+      if (!modal) return
+      e.preventDefault()
+      pending = a.href
+      modal.hidden = false
+    }),
+  )
+  modal?.addEventListener('click', (e) => { if (e.target === modal) close() })
+  modal?.querySelector('[data-continue]')?.addEventListener('click', () => {
+    if (!pending) return
+    const link = document.createElement('a')
+    link.href = pending
+    link.download = ''
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    close()
+  })
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal && !modal.hidden) close() })
+</script>

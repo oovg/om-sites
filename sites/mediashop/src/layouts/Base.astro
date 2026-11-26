@@ -1,0 +1,33 @@
+---
+import '@fontsource/instrument-sans/400.css'
+import '@fontsource/instrument-sans/500.css'
+import '@fontsource/instrument-sans/600.css'
+import '@fontsource/newsreader/400.css'
+import '@fontsource/newsreader/400-italic.css'
+import '@om/ui/tokens.css'
+import '../styles/mediashop.css'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+import { shopName } from '@om/content'
+import { om } from '../lib/shop'
+interface Props { title?: string; description?: string }
+const { title, description } = Astro.props
+const name = shopName(om())
+---
+<!doctype html>
+<html lang="en" data-site="mediashop">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ? `${title} — ${name}` : name}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="alternate" type="application/rss+xml" href="/rss.xml" />
+    <link rel="alternate" type="application/opds+json" href="/index.json" />
+  </head>
+  <body>
+    <Header />
+    <main><slot /></main>
+    <Footer />
+  </body>
+</html>

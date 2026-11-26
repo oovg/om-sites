@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro'
+import ConceptList from '../components/ConceptList.astro'
+import { notebookList } from '@om/content'
+import Header from '../components/Header.astro'
+import { bespokePages, bespokeParts } from '../bespoke'
+import { conceptsUsed, demote, md, names, om, sectionsOf } from '../lib/nb'
+
+export function getStaticPaths() {
+  return notebookList(om()).map((n) => ({ params: { notebook: n.slug } }))
+}
+const o = om()
+const nb = notebookList(o).find((n) => n.slug === Astro.params.notebook)!
+const bespoke = bespokePages[nb.slug] ? bespokeParts(bespokePages[nb.slug]) : undefined
+const sections = sectionsOf(nb, o)
+const used = conceptsUsed(nb, o)
+---
+{bespoke ? (
+  <>
+    <Fragment set:html={bespoke.before} />
+    <Header current={nb.slug} />
+    <Fragment set:html={bespoke.after} />
+  </>
+) : (
+<Base title={nb.data.title} description={nb.data.summary} current={nb.slug}>
+  <section class="hero">
+    <div class="eyebrow mono">{names(o).hub.toUpperCase()}</div>
+    <h1>{nb.data.title}</h1>
+    <p class="sub">{nb.data.summary}</p>
+    <a class="scroll-hint mono" href="#text">SCROLL ↓</a>
+  </section>
+  <main class="nb-body" id="text">
+    {sections.length > 0 && (
+      <nav class="nb-toc" aria-label="Contents">
+        <h2 class="nb-label">Contents</h2>
+        <ol>{sections.map((s) => <li><a href={`#${s.slug}`}>{s.data.title}</a></li>)}</ol>
+      </nav>
+    )}
+    <div class="prose" set:html={md(nb.body, o)} />
+    {sections.map((s) => (
+      <section class="nb-section" id={s.slug}>
+        <h2>{s.data.title}</h2>
+        <div class="prose" set:html={md(demote(s.body), o)} />
+      </section>
+    ))}
+  </main>
+  <div class="nb-concepts"><ConceptList items={used} title="Concepts in this notebook" /></div>
+</Base>
+)}

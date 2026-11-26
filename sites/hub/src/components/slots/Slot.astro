@@ -1,0 +1,14 @@
+---
+import type { Slot } from '@om/content'
+import Transmissions from './Transmissions.astro'
+import Media from './Media.astro'
+import Events from './Events.astro'
+import Research from './Research.astro'
+import Projects from './Projects.astro'
+import LatestUpdate from './LatestUpdate.astro'
+import Updates from './Updates.astro'
+interface Props { name: Slot; intro?: string }
+const { name, intro } = Astro.props
+const C = { Transmissions, Media, Events, Research, Projects, 'Latest update': LatestUpdate, Updates }[name]
+---
+<C heading={name} intro={intro} />

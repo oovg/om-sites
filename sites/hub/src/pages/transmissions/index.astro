@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro'
+import { assetUrl, authorLine, hubTitle, href, om, transmissions } from '../../lib/hub'
+import { formatShort } from '@om/content'
+const o = om()
+---
+<Base title="Transmissions" description={o.site?.data.tagline ?? ''} shell="post" footer={false}>
+  <div class="post-top"><h2 class="post-label">Transmissions</h2></div>
+  <div class="post-list">
+    {transmissions(o).map((t) => {
+      const link = href(t, o)
+      const img = assetUrl(t.data.image)
+      const ext = link.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {}
+      return (
+        <div class="tpost">
+          <p class="tpost-date"><i>{formatShort(t.data.date)}</i></p>
+          <a href={link} {...ext}>
+            {img && <img src={img} alt="transmissions image" loading="lazy" />}
+            <div class="markdown"><h1>{t.data.title}</h1></div>
+          </a>
+          {authorLine(t) && <p class="tpost-by"><i>by</i> {authorLine(t)}</p>}
+          <div class="markdown"><p>{t.data.summary}</p></div>
+          <a href={link} {...ext}>Read More</a>
+        </div>
+      )
+    })}
+  </div>
+</Base>

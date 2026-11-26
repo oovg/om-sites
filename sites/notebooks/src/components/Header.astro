@@ -1,0 +1,33 @@
+---
+/** Shared header (new): hub link, and one dropdown (Frameworks, Notebooks, Glossary) at every width — notebook names are long. No JS: <details>. */
+import { names, notebooks } from '../lib/nb'
+interface Props { current?: string }
+const { current } = Astro.props
+const { frameworks, working } = notebooks()
+const n = names()
+const link = (slug: string) => `/${slug}`
+const cur = (slug: string) => (current === slug ? { 'aria-current': 'page' as const } : {})
+---
+<header class="nb-header">
+  <div class="nb-header-inner">
+    <a class="nb-brand" href={n.hubUrl}>{n.hub}</a>
+    <details class="nb-menu">
+      <summary>MENU ▾</summary>
+      <nav class="nb-nav" aria-label="Notebooks">
+        {frameworks.length > 0 && (
+          <div class="nb-group">
+            <span class="nb-group-label">Frameworks</span>
+            {frameworks.map((f) => <a href={link(f.slug)} {...cur(f.slug)}>{f.data.title}</a>)}
+          </div>
+        )}
+        {working.length > 0 && (
+          <div class="nb-group">
+            <span class="nb-group-label">Notebooks</span>
+            {working.map((w) => <a href={link(w.slug)} {...cur(w.slug)}>{w.data.title}</a>)}
+          </div>
+        )}
+        <a href="/glossary" {...cur('glossary')}>Glossary</a>
+      </nav>
+    </details>
+  </div>
+</header>

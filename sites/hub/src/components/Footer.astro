@@ -1,0 +1,43 @@
+---
+import Icons from './Icons.astro'
+import { hubTitle, nav, om } from '../lib/hub'
+const o = om()
+const s = o.site?.data
+const ext = (external: boolean) => (external ? { target: '_blank', rel: 'noopener' } : {})
+/** Icon by link target, as on the old footer (email, X, Substack; others none). */
+function icon(url: string): 'email' | 'x' | 'substack' | undefined {
+  if (url.startsWith('mailto:')) return 'email'
+  if (/\/\/(www\.)?(x|twitter)\.com\b/.test(url)) return 'x'
+  if (/substack\.com\b/.test(url)) return 'substack'
+}
+---
+<div class="ftr">
+  <div class="ftr-col">
+    <h2 class="h">Navigate</h2>
+    <div class="ftr-nav">
+      {nav(o).map((n) => <a href={n.href} class="ulink" {...ext(n.external)}>{n.label}</a>)}
+    </div>
+  </div>
+  {s?.contact?.length ? (
+    <div class="ftr-col">
+      <h2 class="h">Contact</h2>
+      {s.contact.map((c) => {
+        const ic = icon(c.url)
+        return (
+          <div class="ftr-contact">
+            <p>
+              <a href={c.url} {...ext(!c.url.startsWith('mailto:'))}>
+                {ic && <Icons name={ic} />}
+                {c.label}
+              </a>
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  ) : null}
+</div>
+<div class="ftr-bottom">
+  <p>{[s?.licence, hubTitle(o)].filter(Boolean).join(' | ')}</p>
+  {s?.tagline && <p>{s.tagline}</p>}
+</div>
