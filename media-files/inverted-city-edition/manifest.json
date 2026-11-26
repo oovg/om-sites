@@ -1,0 +1,8 @@
+{
+  "key": "bd53d65432dbbdf2",
+  "generated": [
+    "epub",
+    "md"
+  ],
+  "tools": "pandoc 3.14 | typst 0.15.1 (unknown commit)"
+}
