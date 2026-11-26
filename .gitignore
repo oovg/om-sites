@@ -1,0 +1,10 @@
+node_modules/
+dist/
+snapshots/
+.cache/
+.env
+.astro/
+
+# Pagefind index and Astro type cache
+sites/*/.astro/
+.DS_Store
