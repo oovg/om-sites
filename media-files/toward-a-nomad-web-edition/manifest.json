@@ -1,9 +1,9 @@
 {
-  "key": "7b83e7b3195936d7",
+  "key": "43e7677b4f3cd81e",
   "generated": [
     "epub",
     "pdf",
     "md"
   ],
-  "tools": "pandoc 3.14 | typst 0.15.1 (unknown commit)"
+  "tools": "pandoc 3.9 | typst 0.13.1 (8ace67d9)"
 }
