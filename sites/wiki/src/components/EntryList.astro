@@ -1,0 +1,15 @@
+---
+import type { Entry } from '@om/content'
+import { formatShort, wikiPath } from '@om/content'
+interface Props { entries: Entry[] }
+const { entries } = Astro.props
+---
+<ul class="w-entries">
+  {entries.map((e) => (
+    <li>
+      <a class="t" href={wikiPath(e)}>{e.data.title}</a>
+      <div class="m">{e.type} · {formatShort(e.data.date)}</div>
+      {e.data.summary && <p class="s">{e.data.summary}</p>}
+    </li>
+  ))}
+</ul>

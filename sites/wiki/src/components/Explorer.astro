@@ -1,0 +1,30 @@
+---
+/** Folder tree of public/ (the old wiki's Explorer), as nested <details>; the current page's folders are open. */
+import { type Folder, folderHref, tree, om } from '../lib/wiki'
+import { wikiPath } from '@om/content'
+interface Props { current?: string }
+const { current = '' } = Astro.props
+const root = tree(om())
+const isOpen = (f: Folder) => current === `/${f.path}` || current.startsWith(`/${f.path}/`)
+const cur = (href: string) => (href.replace(/\/$/, '') === current.replace(/\/$/, '') ? { 'aria-current': 'page' as const } : {})
+---
+<section class="w-tree">
+  <span class="label">Explorer</span>
+  <ul>
+    {root.entries.map((e) => <li><a href={wikiPath(e)} {...cur(wikiPath(e))}>{e.data.title}</a></li>)}
+    {root.folders.map(function render(f: Folder): any {
+      return (
+        <li>
+          <details open={isOpen(f)}>
+            <summary><a href={folderHref(f)} {...cur(folderHref(f))}>{f.notebook ? f.notebook.data.title : f.name}</a></summary>
+            <ul>
+              {f.folders.map(render)}
+              {f.entries.map((e) => <li><a href={wikiPath(e)} {...cur(wikiPath(e))}>{e.data.title}</a></li>)}
+            </ul>
+          </details>
+        </li>
+      )
+    })}
+    <li><details open={current.startsWith('/assets')}><summary><a href="/assets/" {...cur('/assets/')}>assets</a></summary></details></li>
+  </ul>
+</section>

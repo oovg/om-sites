@@ -1,0 +1,18 @@
+---
+/** Dev-only style guide (/_styleguide): one entry of every type, and the richest markdown body. */
+import Base from '../layouts/Base.astro'
+import EntryList from '../components/EntryList.astro'
+import { byDateDesc, ENTRY_TYPES, entriesOf } from '@om/content'
+import { md, om, richness } from '../lib/wiki'
+const o = om()
+const samples = ENTRY_TYPES.map((t) => entriesOf(o, t).sort(byDateDesc)[0]).filter((e) => e !== undefined)
+const rich = [...o.entries].sort((a, b) => richness(b.body) - richness(a.body))[0]
+---
+<Base title="Style guide" right={false}>
+  <h1 class="w-h1 h">Style guide</h1>
+  <span class="label">One entry of every type</span>
+  <EntryList entries={samples} />
+  <div class="w-rule"></div>
+  <span class="label">Richest body: {rich.data.title}</span>
+  <div class="markdown" set:html={md(rich.body, o)} />
+</Base>

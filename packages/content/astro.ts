@@ -5,7 +5,7 @@
  */
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
-import { assetsMiddleware, copyAssets } from './assets.ts'
+import { assetsMiddleware, copyAllAssets, copyAssets } from './assets.ts'
 import type { Entry } from './load.ts'
 import { loadOuterMind } from './load.ts'
 
@@ -15,6 +15,8 @@ export interface OmSiteOptions {
   entries: (all: Entry[]) => Entry[]
   /** Dev-only style guide page (an .astro file), served at /_styleguide. */
   styleguide?: string
+  /** Copy every file in public/assets, not only the referenced ones (the wiki shows everything). */
+  allAssets?: boolean
 }
 
 export function omSite(opts: OmSiteOptions): AstroIntegration {
@@ -36,7 +38,8 @@ export function omSite(opts: OmSiteOptions): AstroIntegration {
       },
       'astro:build:done': ({ dir, logger }) => {
         const om = loadOuterMind()
-        const n = copyAssets(om, opts.entries(om.entries), fileURLToPath(dir))
+        const out = fileURLToPath(dir)
+        const n = opts.allAssets ? copyAllAssets(om, out) : copyAssets(om, opts.entries(om.entries), out)
         logger.info(`copied ${n} assets from the outer mind`)
       },
     },

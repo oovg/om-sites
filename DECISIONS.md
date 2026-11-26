@@ -85,3 +85,12 @@ Non-obvious choices, and differences from the old sites, with the reason for eac
 - **URLs:** the old site's `/` was the IES page; now `/` is the index and IES is at `/institutions-extitutions-substrates`.
 - **Gate:** `packages/content/gate.ts` runs the site's dev/build/preview only when the outer mind has a notebook; a skipped build removes `dist/notebooks`.
 - **Fixture:** an IES notebook entry (metadata for the header, index and hub; its markdown sections are only seen on the wiki), its 16 glossary terms as concepts, and the Metacogsec working notebook for the template.
+
+## Wiki (replaces om-quartz; no Quartz code)
+
+- **New design on the hub's base** (decided by vengi, 2026-11-26): hub fonts (the same Typekit kit, already the old wiki's fonts) and colours, 1px rules, uppercase letter-spaced labels, grow-underline links, the hub's markdown sizes with Polymath headings. Dark by default following the system; the toggle stores the choice (`data-theme`). Simple three columns: explorer · text · contents and backlinks; one column on narrow screens; reader mode hides the side columns.
+- **Kept from the old wiki:** title → home, search, light/dark, reader mode, folder explorer, breadcrumbs, title, date and reading time, tags, contents, backlinks, footer. **Dropped:** the AI chat (calls a model and a server at runtime), the graph view and link popovers (decided by vengi, 2026-11-26).
+- **Shows the whole outer mind:** a page per entry at its path in `public/` (a notebook at its folder), every frontmatter field in a "Fields" table (slugs link to their pages, assets to their files), "See it on the hub / media shop / notebooks" when the entry appears there, a page per folder (`/concepts/` is the concept index), `/assets/` listing every asset (all are copied), `/tags/` and a page per tag. `[[links]]` on the wiki go to wiki pages. Quarterly digests show in full.
+- **For LLMs:** `<path>.md` is the entry's file verbatim; `/llms.txt` (title, summary and raw-markdown URL per entry, grouped by folder); `/llms-full.txt` (every file, concatenated, each headed by an HTML comment with its path and URL); `/index.json` (path, type, title, summary, date, updated, links as wiki paths).
+- **Search:** Pagefind runs after `astro build` (offline). In `pnpm dev` there is no index, so the box says "Search is built with the site". Page titles are marked with `data-pagefind-meta`.
+- **Client JS:** the theme and reader toggles (with an inline pre-paint script) and loading Pagefind's own UI.

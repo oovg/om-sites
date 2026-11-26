@@ -1,0 +1,148 @@
+---
+/**
+ * Every wiki page: home (no path), folder indexes, one page per entry, and /assets/.
+ */
+import Base from '../layouts/Base.astro'
+import EntryList from '../components/EntryList.astro'
+import { entriesOf, formatShort, listAssets, splitSections, wikiPath, type Entry } from '@om/content'
+import {
+  backlinksOf, crumbs, dirOf, facts, folderHref, folderPages, type Folder, md, minutes, names, om, seenOn, toc, tree,
+} from '../lib/wiki'
+
+type Props = { kind: 'home' } | { kind: 'folder'; path: string } | { kind: 'entry'; slug: string } | { kind: 'assets' }
+
+export function getStaticPaths() {
+  const o = om()
+  return [
+    { params: { path: undefined }, props: { kind: 'home' } },
+    { params: { path: 'assets' }, props: { kind: 'assets' } },
+    ...folderPages(o).map((f) => ({ params: { path: f.path }, props: { kind: 'folder', path: f.path } })),
+    ...o.entries.map((e) => ({ params: { path: wikiPath(e).slice(1) }, props: { kind: 'entry', slug: e.slug } })),
+  ]
+}
+
+const o = om()
+const props = Astro.props as Props
+const n = names(o)
+const count = (f: Folder): number => f.entries.length + (f.notebook ? 1 : 0) + f.folders.reduce((a, c) => a + count(c), 0)
+
+let entry: Entry | undefined
+let folder: Folder | undefined
+if (props.kind === 'entry') entry = o.bySlug.get(props.slug)
+if (props.kind === 'folder') {
+  const find = (f: Folder): Folder | undefined => (f.path === props.path ? f : f.folders.map(find).find(Boolean))
+  folder = find(tree(o))
+}
+
+// Home: the hub home page's hero text
+const hubHome = entriesOf(o, 'page').find((p) => p.data.site === 'hub' && p.data.path === '/')
+const hero = hubHome && splitSections(hubHome.body, { om: o, site: 'wiki' }).find((s) => s.heading === 'Hero')
+const heroText = hero
+  ? hero.nodes.filter((x: any) => x.type === 'paragraph' && !x.children.every((c: any) => c.type === 'image' || (c.type === 'text' && !c.value.trim())))
+  : []
+import { nodesToHtml } from '@om/content'
+
+// Entry page parts
+const body = entry && md(entry.body, o)
+const headings = entry ? toc(entry.body) : []
+const back = entry ? backlinksOf(entry, o) : []
+const sectionList =
+  entry?.type === 'notebook'
+    ? (entry as Entry<'notebook'>).data.sections.map((s) => o.bySlug.get(s)).filter((x): x is Entry => !!x)
+    : []
+const current = entry ? wikiPath(entry) : folder ? `/${folder.path}` : props.kind === 'assets' ? '/assets' : '/'
+const title = entry?.data.title ?? (folder ? folder.path : props.kind === 'assets' ? 'assets' : undefined)
+---
+<Base title={title} description={entry?.data.summary} current={current} right={props.kind === 'entry'}>
+  {props.kind === 'home' && (
+    <>
+      <h1 class="w-h1 h" data-pagefind-meta="title">{n.wiki}</h1>
+      {heroText.length > 0 && <div class="w-hero" set:html={nodesToHtml(heroText as any)} />}
+      <div class="w-folders">
+        {tree(o).folders.map((f) => <a href={folderHref(f)}><span class="label">{f.name}</span><div class="n">{count(f)} entries</div></a>)}
+        <a href="/tags/"><span class="label">tags</span><div class="n">by tag</div></a>
+        <a href="/assets/"><span class="label">assets</span><div class="n">{listAssets(o).length} files</div></a>
+      </div>
+      <p class="w-raw w-muted">For language models: <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/index.json">index.json</a></p>
+    </>
+  )}
+
+  {folder && (
+    <>
+      <nav class="w-crumbs">{crumbs(folder.path, o).slice(0, -1).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{folder.name}</nav>
+      <h1 class="w-h1 h" data-pagefind-meta="title">{folder.name}</h1>
+      {folder.folders.length > 0 && (
+        <div class="w-folders">{folder.folders.map((f) => <a href={folderHref(f)}><span class="label">{f.notebook ? f.notebook.data.title : f.name}</span><div class="n">{count(f)} entries</div></a>)}</div>
+      )}
+      <EntryList entries={folder.entries} />
+    </>
+  )}
+
+  {props.kind === 'assets' && (
+    <>
+      <nav class="w-crumbs"><a href="/">Home</a><span>›</span>assets</nav>
+      <h1 class="w-h1 h" data-pagefind-meta="title">assets</h1>
+      <ul class="w-entries">{listAssets(o).map((a) => <li><a href={`/assets/${a}`}>{a}</a></li>)}</ul>
+    </>
+  )}
+
+  {entry && (
+    <article>
+      <nav class="w-crumbs">{crumbs(dirOf(entry), o).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{entry.data.title}</nav>
+      <h1 class="w-h1 h" data-pagefind-meta="title">{entry.data.title}</h1>
+      <div class="w-meta">
+        <span>{formatShort(entry.data.date)}</span>
+        {entry.data.updated && entry.data.updated > entry.data.date && <span>Updated {formatShort(entry.data.updated)}</span>}
+        <span>{minutes(entry)} min read</span>
+        <span>{entry.type}</span>
+      </div>
+      {entry.data.tags.length > 0 && (
+        <div class="w-tags">{entry.data.tags.map((t) => <a class="w-tag" href={`/tags/${t}`}>#{t}</a>)}</div>
+      )}
+      {entry.data.summary && <p class="w-summary">{entry.data.summary}</p>}
+      {seenOn(entry, o).length > 0 && (
+        <p class="w-seen">See it on {seenOn(entry, o).map((s, i) => <>{i > 0 && ' · '}<a href={s.href}>{s.site}</a></>)}</p>
+      )}
+      <div class="w-rule"></div>
+      <div class="markdown" set:html={body} />
+      {sectionList.length > 0 && (
+        <>
+          <span class="label">Sections</span>
+          <EntryList entries={sectionList} />
+        </>
+      )}
+      <section class="w-facts" data-pagefind-ignore>
+        <span class="label">Fields</span>
+        <dl>
+          {facts(entry, o).map((r) => (
+            <>
+              <dt>{r.key}</dt>
+              <dd>{r.values.map((v) => <span>{v.href ? <a href={v.href}>{v.text}</a> : v.text}</span>)}</dd>
+            </>
+          ))}
+          <dt>file</dt><dd>public/{entry.file}</dd>
+        </dl>
+        <p class="w-raw"><a href={`${wikiPath(entry)}.md`}>Raw markdown</a></p>
+      </section>
+    </article>
+  )}
+
+  {entry && (
+    <Fragment slot="right">
+      {headings.length > 0 && (
+        <section>
+          <span class="label">Contents</span>
+          <ul class="w-list">{headings.map((h) => <li class={`d${h.depth}`}><a href={`#${h.id}`}>{h.text}</a></li>)}</ul>
+        </section>
+      )}
+      <section>
+        <span class="label">Backlinks</span>
+        {back.length ? (
+          <ul class="w-list">{back.map((b) => <li><a href={wikiPath(b)}>{b.data.title}</a></li>)}</ul>
+        ) : (
+          <p class="w-muted">No backlinks</p>
+        )}
+      </section>
+    </Fragment>
+  )}
+</Base>

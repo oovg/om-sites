@@ -2,7 +2,7 @@
  * Assets: which files in `public/assets/` entries reference, copying them into a site's output,
  * and serving them in dev.
  */
-import { copyFileSync, createReadStream, existsSync, mkdirSync, statSync } from 'node:fs'
+import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import type { Entry, OuterMind } from './load.ts'
 
@@ -32,6 +32,34 @@ export function copyAssets(om: OuterMind, entries: Entry[], outDir: string): num
     n++
   }
   return n
+}
+
+/** Copies every file in public/assets into `<outDir>/assets/`. Returns the count. */
+export function copyAllAssets(om: OuterMind, outDir: string): number {
+  if (!existsSync(om.assetsDir)) return 0
+  const names = listAssets(om)
+  for (const name of names) {
+    const dest = join(outDir, 'assets', name)
+    mkdirSync(join(dest, '..'), { recursive: true })
+    copyFileSync(join(om.assetsDir, name), dest)
+  }
+  return names.length
+}
+
+/** Every file name under public/assets (relative, sorted), skipping dotfiles. */
+export function listAssets(om: OuterMind): string[] {
+  if (!existsSync(om.assetsDir)) return []
+  const out: string[] = []
+  const walk = (dir: string, rel: string) => {
+    for (const f of readdirSync(dir).sort()) {
+      if (f.startsWith('.')) continue
+      const full = join(dir, f)
+      if (statSync(full).isDirectory()) walk(full, `${rel}${f}/`)
+      else out.push(`${rel}${f}`)
+    }
+  }
+  walk(om.assetsDir, '')
+  return out
 }
 
 const TYPES: Record<string, string> = {
