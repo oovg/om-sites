@@ -1,8 +1,8 @@
 ---
 title: Intelligence is Immanent
 author:
-  - The Open Machine
-date: 2026-11-25
+  - Ven Gist
+date: 2026-10-23
 lang: en
 rights: CC BY-NC-SA 4.0
 identifier: urn:om:intelligence-is-immanent-edition

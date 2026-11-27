@@ -2,7 +2,7 @@
 title: Toward a Nomad Web
 author:
   - Ven Gist
-date: 2026-11-25
+date: 2026-08-13
 lang: en
 rights: CC BY-NC-SA 4.0
 identifier: urn:om:toward-a-nomad-web-edition
