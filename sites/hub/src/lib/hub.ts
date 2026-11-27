@@ -1,16 +1,23 @@
 /**
  * Hub data: everything the hub's pages need from the outer mind, through @om/content.
  */
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   assetUrl,
+  BESPOKE_NOTEBOOKS,
   byDateDesc,
   type Entry,
   entriesOf,
   hrefOf,
   hrefTo,
+  imagesIn,
+  isSiblingHref,
   loadOuterMind,
+  MEDIA_FILES,
   notebookList,
   type OuterMind,
+  parseMarkdown,
   PROJECT_STATUSES,
   renderMarkdown,
   type RenderOptions,
@@ -43,7 +50,8 @@ export function nav(o: OuterMind = om()): NavLink[] {
     if (n.path) return { label: n.label, href: n.path, external: false }
     if (n.to) {
       const id = siteIdOf(n.to)
-      return { label: n.label, href: id ? `${siteBase(o, id)}/` : '#', external: true }
+      // Sibling sites stay in the same tab; SiteLinks points the URL at this deployment.
+      return { label: n.label, href: id ? `${siteBase(o, id)}/` : '#', external: false }
     }
     return { label: n.label, href: n.url!, external: true }
   })
@@ -59,17 +67,74 @@ export const transmissions = (o: OuterMind = om()) => entriesOf(o, 'transmission
 
 export const href = (e: Entry, o: OuterMind = om()) => hrefOf(o, e, SITE)
 
+/** A new tab for a link that leaves the four sites (Substack, Collective, …). Sibling sites stay put. */
+export function opensNewTab(link: string, o: OuterMind = om()): boolean {
+  return /^https?:/i.test(link) && !isSiblingHref(o, link)
+}
+
 export { assetUrl, hrefTo, splitSections }
 
 /** Media shop items, newest first. */
 export const mediaItems = (o: OuterMind = om()) => entriesOf(o, 'media').sort(byDateDesc)
 
-/** Cover for a media item: its `cover`, else the edition's source image. Generated covers come with the mediashop. */
+/**
+ * Cover for a media item. A supplied `cover` is an asset on this site. A generated cover
+ * lives on the media shop (`/media/<slug>/cover.png`); SiteLinks points that at the shop
+ * you're viewing. Otherwise the edition's own image.
+ */
 export function mediaCover(m: Entry<'media'>, o: OuterMind = om()): string | undefined {
   if (m.data.cover) return assetUrl(m.data.cover)
+  if (existsSync(join(MEDIA_FILES, m.slug, 'cover.png'))) return `${siteBase(o, 'mediashop')}/media/${m.slug}/cover.png`
   const src = m.data.edition_of ? o.bySlug.get(m.data.edition_of) : undefined
   const img = src && (src.data as { image?: string }).image
   return assetUrl(img)
+}
+
+/** Author for a shop preview: the media entry, else the piece it editions, else the hub's name. */
+export function mediaByline(m: Entry<'media'>, o: OuterMind = om()): string {
+  if (m.data.author?.length) return m.data.author.join(', ')
+  const src = m.data.edition_of ? o.bySlug.get(m.data.edition_of) : undefined
+  const author = src && (src.data as { author?: string[] }).author
+  if (author?.length) return author.join(', ')
+  return hubTitle(o)
+}
+
+function shopCover(slug: string | undefined, o: OuterMind): string | undefined {
+  if (!slug) return undefined
+  const m = o.bySlug.get(slug)
+  return m?.type === 'media' ? mediaCover(m, o) : undefined
+}
+
+/**
+ * Picture for a transmission card. The first image in the piece, otherwise its `image`,
+ * otherwise the shop cover (its own, else its book's).
+ */
+export function transmissionImage(t: Entry<'transmission'>, o: OuterMind = om()): string | undefined {
+  const embedded = imagesIn(parseMarkdown(t.body).children)[0]?.src
+  if (embedded) return embedded
+  const own = assetUrl(t.data.image)
+  if (own) return own
+  const shop = shopCover(t.data.in_mediashop, o)
+  if (shop) return shop
+  const book = t.data.collection ? o.bySlug.get(t.data.collection) : undefined
+  if (book?.type !== 'collection') return undefined
+  return assetUrl(book.data.image) ?? shopCover(book.data.in_mediashop, o)
+}
+
+/** Preview for a notebook card: a prepared image, else the first image in the notebook or its sections. */
+export function notebookImage(n: Entry<'notebook'>, o: OuterMind = om()): string | undefined {
+  const prepared = BESPOKE_NOTEBOOKS.find((b) => b.slug === n.slug)
+  if (prepared && 'image' in prepared && prepared.image) return `${siteBase(o, 'notebooks')}${prepared.image}`
+  const from = (body: string) => imagesIn(parseMarkdown(body).children)[0]?.src
+  const own = from(n.body)
+  if (own) return own.startsWith('/') ? `${siteBase(o, 'notebooks')}${own}` : own
+  for (const slug of n.data.sections) {
+    const section = o.bySlug.get(slug)
+    if (!section?.body) continue
+    const img = from(section.body)
+    if (img) return img.startsWith('/') ? `${siteBase(o, 'notebooks')}${img}` : img
+  }
+  return undefined
 }
 
 export const events = (o: OuterMind = om()) => entriesOf(o, 'event').sort(byDateDesc)

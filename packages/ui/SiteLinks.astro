@@ -1,0 +1,99 @@
+---
+/**
+ * Retargets cross-site links at the deployment the reader is actually on.
+ * Canonical hosts come from site.md; local ports come from each site's dev script.
+ * On `hub.vercel.app`, a media-shop link becomes `mediashop.vercel.app` (the site name
+ * at the start of the hostname is swapped, including `hub-git-branch-….vercel.app`).
+ * On localhost, the link uses that site's port. On the published host, the link is unchanged.
+ */
+interface Host {
+  origin: string
+  port: number
+}
+interface Props {
+  site: string
+  hosts: Record<string, Host>
+}
+const { site, hosts } = Astro.props
+---
+<script is:inline define:vars={{ hosts, site }}>
+  ;(function () {
+    var here = site
+    if (!here || !hosts[here]) return
+    var names = Object.keys(hosts)
+    function hostOf(origin) {
+      try {
+        return new URL(origin).hostname
+      } catch (e) {
+        return ''
+      }
+    }
+    function originFor(id) {
+      var prod = hosts[id].origin || ''
+      var curHost = hostOf((hosts[here] && hosts[here].origin) || '')
+      var host = location.hostname
+      if (curHost && (host === curHost || host === 'www.' + curHost)) return prod
+      if ((host === 'localhost' || host === '127.0.0.1') && hosts[id].port)
+        return location.protocol + '//' + host + ':' + hosts[id].port
+      var labels = host.split('.')
+      var first = labels[0]
+      if (first === here || first.indexOf(here + '-') === 0) {
+        labels[0] = id + first.slice(here.length)
+        return location.protocol + '//' + labels.join('.') + (location.port ? ':' + location.port : '')
+      }
+      return prod
+    }
+    function siteOf(url) {
+      for (var i = 0; i < names.length; i++) {
+        var id = names[i]
+        var h = hostOf(hosts[id].origin)
+        if (h && url.hostname === h) return id
+        if (
+          hosts[id].port &&
+          (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
+          String(url.port) === String(hosts[id].port)
+        )
+          return id
+      }
+      return ''
+    }
+    function rewrite(raw) {
+      if (!raw || !/^https?:/i.test(raw)) return ''
+      var url
+      try {
+        url = new URL(raw)
+      } catch (e) {
+        return ''
+      }
+      var id = siteOf(url)
+      if (!id) return ''
+      var origin = (originFor(id) || '').replace(/\/$/, '')
+      if (!origin) return ''
+      var next = origin + url.pathname + url.search + url.hash
+      return next === url.href ? '' : next
+    }
+    function apply(root) {
+      var nodes = root.querySelectorAll('a[href], img[src]')
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i]
+        var attr = el.tagName === 'IMG' ? 'src' : 'href'
+        var next = rewrite(el.getAttribute(attr))
+        if (next) el.setAttribute(attr, next)
+      }
+    }
+    document.addEventListener(
+      'click',
+      function (e) {
+        var t = e.target
+        if (!t || !t.closest) return
+        var a = t.closest('a[href]')
+        if (!a) return
+        var next = rewrite(a.getAttribute('href'))
+        if (next) a.setAttribute('href', next)
+      },
+      true,
+    )
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { apply(document) })
+    else apply(document)
+  })()
+</script>

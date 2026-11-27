@@ -10,7 +10,7 @@ import { imagesIn, isSlot, splitSections } from '@om/content'
 import Slot from './slots/Slot.astro'
 import SectionB from './SectionB.astro'
 import { opts, om } from '../lib/hub'
-import { html, isImageOnly, isLinkOnly, subsections } from '../lib/render'
+import { html, isImageOnly, isLinkOnly, stripDonateCta, subsections } from '../lib/render'
 
 interface Props { page: Entry<'page'> }
 const { page } = Astro.props
@@ -40,34 +40,45 @@ for (const s of rest) {
   }
 }
 const firstCopy = !hasHero ? rest[0] : undefined
+
+// On the home page the donate button is drawn once, in the nonprofit band, labeled as support.
+const hasDonate = rest.some((s) => s.heading === 'Donate')
+let supportHref: string | undefined
+const homeSections = rest.map((s) => {
+  if (!hasDonate || isSlot(s.heading)) return s
+  const stripped = stripDonateCta(s.nodes)
+  if (stripped.href) supportHref = stripped.href
+  return { ...s, nodes: stripped.nodes }
+})
 ---
 {hasHero ? (
   <>
-    <div class="hero">
-      {heroImages[0] && (
-        <div class="hero-col"><img src={heroImages[0].src} alt={heroImages[0].alt} sizes="(max-width: 768px) 100vw, 50vw" /></div>
-      )}
-      {heroImages[1] && (
+    {heroImages.length > 0 && (
+      <div class="hero">
+        <div class="hero-col hero-front"><img src={heroImages[0].src} alt={heroImages[0].alt} /></div>
         <div class="hero-col hero-back">
-          <img src={heroImages[1].src} alt={heroImages[1].alt} sizes="50vw" />
-          <div class="hero-text" set:html={html(heroText)} />
+          <img src="/album-back.jpg" alt="" />
+          <div class="hero-onback"><Fragment set:html={html(heroText)} /></div>
         </div>
-      )}
-    </div>
-    <div class:list={['what-we-do', { 'what-we-do--always': !heroImages[1] }]} id="what-we-do">
+      </div>
+    )}
+    <div class="hero-copy">
       <h2 class="h">What we do</h2>
       <Fragment set:html={html(heroText)} />
     </div>
     {heroCta && heroCta.type === 'link' && (
       <a href={heroCta.url} class="cta-banner"><div><p>{ctaText}</p></div></a>
     )}
-    {rest.map((s) => {
+    {homeSections.map((s) => {
       if (isSlot(s.heading)) return <Slot name={s.heading} intro={s.nodes.length ? html(s.nodes) : undefined} />
-      // A copy section headed "Donate" is the old untitled inverted band (DonateBlock).
+      // A copy section headed "Donate" is the old untitled inverted band. Its button reads "Support our Mission".
       if (s.heading === 'Donate')
         return (
           <div class="band" id="donate">
-            <div class="band-inner" set:html={html(s.nodes)} />
+            <div class="band-inner">
+              <div set:html={html(s.nodes)} />
+              {supportHref && <p><a class="btn btn--cta" href={supportHref}>Support our Mission</a></p>}
+            </div>
           </div>
         )
       const { before, subs } = subsections(s.nodes)

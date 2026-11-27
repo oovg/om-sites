@@ -5,7 +5,8 @@ import '../styles/hub.css'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import { hubTitle, om } from '../lib/hub'
-import { siteBase } from '@om/content'
+import { siteBase, siteHosts } from '@om/content'
+import SiteLinks from '@om/ui/SiteLinks.astro'
 
 interface Props {
   title: string
@@ -63,5 +64,6 @@ const url = new URL(Astro.url.pathname, base + '/').href
         </main>
       </div>
     )}
+    <SiteLinks site="hub" hosts={siteHosts(o)} />
   </body>
 </html>

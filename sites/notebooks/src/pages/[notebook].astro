@@ -5,6 +5,8 @@ import { notebookList } from '@om/content'
 import Header from '../components/Header.astro'
 import { bespokePages, bespokeParts } from '../bespoke'
 import { conceptsUsed, demote, md, names, om, sectionsOf } from '../lib/nb'
+import { siteHosts } from '@om/content'
+import SiteLinks from '@om/ui/SiteLinks.astro'
 
 export function getStaticPaths() {
   return notebookList(om()).map((n) => ({ params: { notebook: n.slug } }))
@@ -19,6 +21,7 @@ const used = conceptsUsed(nb, o)
   <>
     <Fragment set:html={bespoke.before} />
     <Header current={nb.slug} />
+    <SiteLinks site="notebooks" hosts={siteHosts(o)} />
     <Fragment set:html={bespoke.after} />
   </>
 ) : (

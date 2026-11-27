@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro'
-import { assetUrl, authorLine, hubTitle, href, om, transmissions } from '../../lib/hub'
+import { authorLine, href, om, opensNewTab, transmissionImage, transmissions } from '../../lib/hub'
 import { formatShort } from '@om/content'
 const o = om()
 ---
@@ -9,8 +9,8 @@ const o = om()
   <div class="post-list">
     {transmissions(o).map((t) => {
       const link = href(t, o)
-      const img = assetUrl(t.data.image)
-      const ext = link.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {}
+      const img = transmissionImage(t, o)
+      const ext = opensNewTab(link, o) ? { target: '_blank', rel: 'noopener' } : {}
       return (
         <div class="tpost">
           <p class="tpost-date"><i>{formatShort(t.data.date)}</i></p>

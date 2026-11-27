@@ -10,11 +10,13 @@ import {
   backlinks,
   byDateDesc,
   type Entry,
+  entriesOf,
   hasNotebooks,
   hrefOf,
   loadOuterMind,
   locate,
   mdToString,
+  notebookList,
   type OuterMind,
   outgoing,
   parseMarkdown,
@@ -100,7 +102,112 @@ export function allFolders(f: Folder, out: Folder[] = []): Folder[] {
 /** Folder pages: every folder except notebook folders (those are the notebook's page). */
 export const folderPages = (o: OuterMind = om()) => allFolders(tree(o)).filter((f) => !f.notebook)
 
-export const folderHref = (f: Folder) => (f.notebook ? wikiPath(f.notebook) : `/${f.path}/`)
+/** Wiki path, with bespoke notebooks (their file is not under public/) at /notebooks/<slug>. */
+export function notePath(e: Entry): string {
+  if (e.type === 'notebook' && !e.file.startsWith('notebooks/')) return `/notebooks/${e.slug}`
+  return wikiPath(e)
+}
+
+export const folderHref = (f: Folder) => (f.notebook ? notePath(f.notebook) : `/${f.path}/`)
+
+/**
+ * The folders the wiki lists. These are presentation groups, not the raw public/ folders:
+ * Settings (site.md), Assets and Pages are not listed. About is the page entries; Research
+ * is the notebooks. Order is fixed.
+ */
+export const SECTIONS = [
+  { id: 'about', label: 'About', href: '/about/' },
+  { id: 'concepts', label: 'Concepts', href: '/concepts/' },
+  { id: 'events', label: 'Events', href: '/events/' },
+  { id: 'media', label: 'Media', href: '/media/' },
+  { id: 'research', label: 'Research', href: '/research/' },
+  { id: 'projects', label: 'Projects', href: '/projects/' },
+] as const
+
+export type SectionId = (typeof SECTIONS)[number]['id']
+
+export interface WikiSection {
+  id: SectionId
+  label: string
+  href: string
+  /** Notes listed on the section's index. */
+  entries: Entry[]
+  /** Nested folders for the explorer (a notebook, with its sections inside). */
+  folders: Folder[]
+}
+
+const byTitle = (a: Entry, b: Entry) => a.data.title.localeCompare(b.data.title, 'en', { sensitivity: 'base' })
+
+/** Notebooks as the wiki sees them. A bespoke notebook gets a real wiki path. */
+export function wikiNotebooks(o: OuterMind = om()): Entry<'notebook'>[] {
+  return notebookList(o)
+    .map((n) => (n.file.startsWith('notebooks/') ? n : { ...n, file: `notebooks/${n.slug}/index.md` }))
+    .sort((a, b) => Number(b.data.framework) - Number(a.data.framework) || byTitle(a, b))
+}
+
+export function sectionIdOf(e: Entry): SectionId | undefined {
+  switch (e.type) {
+    case 'page':
+      return 'about'
+    case 'concept':
+      return 'concepts'
+    case 'event':
+      return 'events'
+    case 'transmission':
+    case 'collection':
+    case 'media':
+      return 'media'
+    case 'notebook':
+    case 'section':
+      return 'research'
+    case 'project':
+      return 'projects'
+    default:
+      return undefined
+  }
+}
+
+export function wikiSections(o: OuterMind = om()): WikiSection[] {
+  const notebooks = wikiNotebooks(o)
+  const researchFolders: Folder[] = notebooks.map((n) => ({
+    path: `notebooks/${n.slug}`,
+    name: n.data.title,
+    folders: [],
+    entries: n.data.sections.map((s) => o.bySlug.get(s)).filter((e): e is Entry => !!e),
+    notebook: n,
+  }))
+  const byId = new Map<SectionId, WikiSection>([
+    ['about', { id: 'about', label: 'About', href: '/about/', entries: entriesOf(o, 'page').sort(byTitle), folders: [] }],
+    ['concepts', { id: 'concepts', label: 'Concepts', href: '/concepts/', entries: entriesOf(o, 'concept').sort(byTitle), folders: [] }],
+    ['events', { id: 'events', label: 'Events', href: '/events/', entries: entriesOf(o, 'event').sort(byTitle), folders: [] }],
+    [
+      'media',
+      {
+        id: 'media',
+        label: 'Media',
+        href: '/media/',
+        entries: [...entriesOf(o, 'transmission'), ...entriesOf(o, 'collection'), ...entriesOf(o, 'media')].sort(byTitle),
+        folders: [],
+      },
+    ],
+    ['research', { id: 'research', label: 'Research', href: '/research/', entries: notebooks, folders: researchFolders }],
+    ['projects', { id: 'projects', label: 'Projects', href: '/projects/', entries: entriesOf(o, 'project').sort(byTitle), folders: [] }],
+  ])
+  return SECTIONS.map((s) => byId.get(s.id)!)
+}
+
+export function sectionCount(s: WikiSection): number {
+  const nest = (f: Folder): number => (f.notebook ? 1 : 0) + f.entries.length + f.folders.reduce((n, c) => n + nest(c), 0)
+  // Research lists its notebooks as entries and again as folders; count the folders, which include sections.
+  if (s.id === 'research') return s.folders.reduce((n, f) => n + nest(f), 0)
+  return s.entries.length + s.folders.reduce((n, f) => n + nest(f), 0)
+}
+
+/** Display name of a public/ folder: a section label where one matches, else the folder's own name. */
+export function folderLabel(f: Folder, o: OuterMind = om()): string {
+  if (f.notebook) return f.notebook.data.title
+  return wikiSections(o).find((s) => s.href === `/${f.path}/`)?.label ?? f.name
+}
 
 /** Breadcrumb: Home › folder › … for a public/ path. */
 export function crumbs(path: string, o: OuterMind = om()) {
@@ -110,10 +217,107 @@ export function crumbs(path: string, o: OuterMind = om()) {
   for (const p of path.split('/').filter(Boolean)) {
     const next = cur.folders.find((f) => f.name === p)
     if (!next) break
-    out.push({ label: next.notebook ? next.notebook.data.title : next.name, href: folderHref(next) })
+    out.push({ label: folderLabel(next, o), href: folderHref(next) })
     cur = next
   }
   return out
+}
+
+/** Breadcrumb for a note: Home › its section › its notebook, when it has one. */
+export function entryCrumbs(e: Entry, o: OuterMind = om()) {
+  const id = sectionIdOf(e)
+  const section = id && wikiSections(o).find((s) => s.id === id)
+  if (!section) return crumbs(dirOf(e), o)
+  const out = [
+    { label: 'Home', href: '/' },
+    { label: section.label, href: section.href },
+  ]
+  if (e.type === 'section') {
+    const nb = wikiNotebooks(o).find((n) => n.slug === (e as Entry<'section'>).data.notebook)
+    if (nb) out.push({ label: nb.data.title, href: notePath(nb) })
+  }
+  return out
+}
+
+// ---------------------------------------------------------------- graph
+
+export interface GraphNode {
+  id: string
+  title: string
+  href: string
+  group: SectionId
+}
+export interface GraphLink {
+  source: string
+  target: string
+}
+export interface GraphData {
+  nodes: GraphNode[]
+  links: GraphLink[]
+}
+
+const graphs = new WeakMap<OuterMind, GraphData>()
+
+/** Every note in the six sections, and an undirected link wherever one resolves an outgoing slug. */
+export function fullGraph(o: OuterMind = om()): GraphData {
+  const cached = graphs.get(o)
+  if (cached) return cached
+  const sections = wikiSections(o)
+  const group = new Map<string, SectionId>()
+  const entries: Entry[] = []
+  const seen = new Set<string>()
+  const add = (e: Entry, id: SectionId) => {
+    if (seen.has(e.slug)) return
+    seen.add(e.slug)
+    group.set(e.slug, id)
+    entries.push(e)
+  }
+  for (const s of sections) {
+    for (const e of s.entries) add(e, s.id)
+    const walk = (folders: Folder[]) => {
+      for (const f of folders) {
+        if (f.notebook) add(f.notebook, s.id)
+        for (const e of f.entries) add(e, s.id)
+        walk(f.folders)
+      }
+    }
+    walk(s.folders)
+  }
+  const nodes: GraphNode[] = entries.map((e) => ({
+    id: e.slug,
+    title: e.data.title,
+    href: notePath(e),
+    group: group.get(e.slug)!,
+  }))
+  const linked = new Set<string>()
+  const links: GraphLink[] = []
+  for (const e of entries) {
+    for (const target of outgoing(e)) {
+      if (!seen.has(target) || target === e.slug) continue
+      const [a, b] = e.slug < target ? [e.slug, target] : [target, e.slug]
+      const key = `${a}\0${b}`
+      if (linked.has(key)) continue
+      linked.add(key)
+      links.push({ source: a, target: b })
+    }
+  }
+  const data = { nodes, links }
+  graphs.set(o, data)
+  return data
+}
+
+/** The focus note, the notes it shares a link with, and the links among them. */
+export function localGraph(focus: string, g: GraphData): GraphData | undefined {
+  if (!g.nodes.some((n) => n.id === focus)) return undefined
+  const keep = new Set<string>([focus])
+  for (const l of g.links) {
+    if (l.source === focus) keep.add(l.target)
+    if (l.target === focus) keep.add(l.source)
+  }
+  return {
+    nodes: g.nodes.filter((n) => keep.has(n.id)),
+    links: g.links.filter((l) => keep.has(l.source) && keep.has(l.target)),
+  }
 }
 
 export const dirOf = (e: Entry) => (e.type === 'notebook' ? e.file.split('/').slice(0, 1).join('/') : e.file.split('/').slice(0, -1).join('/'))

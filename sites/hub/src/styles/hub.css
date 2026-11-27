@@ -182,37 +182,36 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
 }
 .menu-open .mnav-overlay { display: block; }
 
-/* ---------- Home hero ---------- */
-.hero { display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; width: 100%; height: 100%; }
-.hero-col { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; width: 100%; }
-.hero-col img { width: 100%; height: auto; }
-.hero-back { position: relative; height: 100%; display: none; color: white; }
-@media (min-width: 48em) {
-  .hero-col { width: 50%; }
-  .hero-back { display: flex; }
-}
-.hero-text { position: absolute; inset: 0; padding: 6vw 6.2vw 0 5.3vw; letter-spacing: 0.005em; }
-.hero-text p { font-family: sans-serif; font-size: 1.16vw; line-height: 1.25; margin-bottom: 1em; }
-.hero-text p:first-child { font-size: 1.45vw; line-height: 1.2; }
-.hero-text p:last-child { margin-bottom: 0; }
-
-.what-we-do {
+/* ---------- Home hero ----------
+ * The live spread: the Hero image is the album front; the text sits on the blank album back
+ * (a design plate, sites/hub/public/album-back.jpg). Below 48em the back is hidden and the
+ * same text is the "What we do" block.
+ */
+.hero { display: flex; flex-flow: wrap; align-items: flex-start; justify-content: space-between; width: 100%; }
+.hero-col { width: 100%; }
+.hero-col img { width: 100%; height: auto; display: block; }
+.hero-back { display: none; position: relative; color: #fff; }
+.hero-onback { position: absolute; inset: 0; padding: 6vw 6.2vw 0 5.3vw; letter-spacing: 0.005em; }
+.hero-onback p { font-family: sans-serif; font-size: 1.16vw; line-height: 1.25; margin: 0 0 1em; }
+.hero-onback p:first-child { font-size: 1.45vw; line-height: 1.2; }
+.hero-onback p:last-child { margin-bottom: 0; }
+.hero-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
   max-width: 600px;
   margin: 0 auto;
-  position: relative;
   padding: var(--s10);
 }
-.what-we-do > h2 { color: var(--primary); font-weight: 100; font-size: var(--fs-xl); margin-bottom: var(--s5); }
-.what-we-do > p { margin-top: var(--s5); }
-.what-we-do > h2 + p { margin-top: 0; font-size: var(--fs-lg); }
+.hero-copy > h2 { font-weight: 100; font-size: var(--fs-xl); line-height: var(--lh-heading); margin-bottom: var(--s5); color: var(--primary); }
+.hero-copy > p { margin-top: var(--s5); }
+.hero-copy > p:first-of-type { margin-top: 0; font-size: var(--fs-lg); }
 @media (min-width: 48em) {
-  .what-we-do { display: none; }
-  .what-we-do > h2 { font-size: var(--fs-2xl); }
-  .what-we-do > h2 + p { font-size: var(--fs-2xl); }
+  .hero-col { width: 50%; }
+  .hero-back { display: block; }
+  .hero + .hero-copy { display: none; }
+  .hero-copy > h2 { font-size: var(--fs-2xl); line-height: var(--lh-heading-md); }
+  .hero-copy > p:first-of-type { font-size: var(--fs-2xl); }
 }
 
 .cta-banner { width: 100%; }
@@ -305,14 +304,21 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
   .tcard-sum { font-size: var(--fs-md); }
 }
 
-.mcard h2 { font-size: var(--fs-md); margin-bottom: var(--s3); }
-.mcard-role { font-size: var(--fs-sm); margin-bottom: var(--s3); }
-.mcard .card-img { height: 360px; max-height: 800px; }
+.mcell { width: 240px; }
+.mcard h2 { font-size: var(--fs-md); margin: var(--s4) 0 var(--s3); }
+.mcard-meta { font-size: var(--fs-xs); margin-bottom: var(--s3); }
+.mcard-sum {
+  font-size: var(--fs-sm);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mcard .card-img { aspect-ratio: 6 / 9; height: auto; }
 @media (min-width: 48em) {
-  .mcell { width: 800px; }
+  .mcell { width: 280px; }
   .mcard h2 { font-size: var(--fs-lg); }
-  .mcard-role { font-size: var(--fs-md); }
-  .mcard .card-img { height: 800px; }
+  .mcard-meta { font-size: var(--fs-sm); }
 }
 
 .gallery-wrap { display: flex; flex-direction: column; width: 100%; padding-left: 0; }
@@ -352,8 +358,17 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
 .rgrid-cell { width: 100%; padding: var(--s2); display: flex; }
 @media (min-width: 48em) { .rgrid-cell { width: 50%; padding: var(--s3); } }
 .bcard { border: 1px solid var(--primary); padding: var(--s5); flex: 1; }
+a.bcard { color: inherit; text-decoration: none; display: flex; flex-direction: column; }
+a.bcard:hover { text-decoration: none; }
 .bcard > h2 { font-size: var(--fs-md); margin-bottom: var(--s5); }
 .bcard > p, .bcard .bcard-text { font-size: var(--fs-sm); }
+.ncard-img {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  margin: calc(var(--s5) * -1) calc(var(--s5) * -1) var(--s5);
+  background: #000; /* the notebook diagram is drawn in white */
+}
+.ncard-img img { width: 100%; height: 100%; object-fit: contain; }
 @media (min-width: 48em) { .bcard > h2 { font-size: var(--fs-lg); } }
 .bstack { display: flex; flex-direction: column; gap: var(--s4); }
 .bstack .bcard > h2 { margin-bottom: var(--s3); }
@@ -383,7 +398,7 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
 .band p { font-size: var(--fs-md); margin-bottom: var(--s6); }
 @media (min-width: 48em) { .band p { font-size: var(--fs-lg); } }
 .band p a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; }
-.band .btn { border-color: var(--bg); color: var(--bg); padding: var(--s3) var(--s6); letter-spacing: 0.15em; }
+.band .btn { border-color: var(--bg); color: var(--bg); padding: var(--s3) var(--s6); letter-spacing: 0.15em; margin-top: var(--s6); }
 .band .btn:hover { background: var(--bg); color: var(--primary); }
 
 /* ---------- Footer ---------- */
@@ -549,6 +564,5 @@ a:focus-visible, button:focus-visible { box-shadow: var(--focus-ring); }
 
 /* Item lists inside the two-column home sections take the full right column. */
 .sb-right .q-right { width: 100%; }
-/* With no second hero image there is nothing to lay the text over: show the text block at every width. */
-@media (min-width: 48em) { .what-we-do--always { display: flex; } }
 .band p:last-child { margin-bottom: 0; }
+.tpost img { width: 100%; max-height: 360px; object-fit: cover; margin-bottom: var(--s6); }

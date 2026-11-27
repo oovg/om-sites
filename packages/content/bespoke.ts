@@ -15,6 +15,8 @@ export const BESPOKE_NOTEBOOKS = [
       'An organizational framework for understanding the attributes of institutions, extitutions, substrates, and the relationship between them.',
     framework: true,
     date: '2026-07-15', // first commit of om-ies
+    /** White diagram from the notebook page, served by the notebooks site. Shown on the hub until a cover is set. */
+    image: '/openEndedIntelligence.svg',
   },
 ] as const
 

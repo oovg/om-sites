@@ -4,12 +4,14 @@ import QItem from '../QItem.astro'
 import { href, om, projectsByStatus, projectUpdates } from '../../lib/hub'
 import { formatShort } from '@om/content'
 interface Props { heading: string; intro?: string }
-const { heading, intro } = Astro.props
+const { intro } = Astro.props
 const o = om()
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+const current = projectsByStatus(o).filter((g) => g.status === 'active' || g.status === 'proposed')
 ---
-<SectionB heading={heading} intro={intro} id="projects">
-  {projectsByStatus(o).map((g, i) => (
+{current.length > 0 && (
+<SectionB heading="Current Projects" intro={intro} id="projects">
+  {current.map((g, i) => (
     <>
       <h2 class:list={['h', 'sb-sub', { 'sb-sub--next': i > 0 }]}>{cap(g.status)}</h2>
       <div class="q-right">
@@ -26,3 +28,4 @@ const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
     </>
   ))}
 </SectionB>
+)}

@@ -1,10 +1,12 @@
 ---
-import { donateUrl, hubTitle, hubUrl } from '../lib/shop'
+import { isSiblingHref } from '@om/content'
+import { donateUrl, hubTitle, hubUrl, om } from '../lib/shop'
 const path = Astro.url.pathname
+const offsite = (href: string) => /^https?:/.test(href) && !isSiblingHref(om(), href)
 const links = [
-  { href: hubUrl(), label: 'About', external: true, active: false },
+  { href: hubUrl(), label: 'About', external: offsite(hubUrl()), active: false },
   { href: '/', label: 'Media', external: false, active: path === '/' || path.startsWith('/media') },
-  { href: donateUrl(), label: 'Donate', external: /^https?:/.test(donateUrl()), active: false },
+  { href: donateUrl(), label: 'Donate', external: offsite(donateUrl()), active: false },
 ]
 ---
 <header class="hdr" data-shop-menu>

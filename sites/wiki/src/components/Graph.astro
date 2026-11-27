@@ -1,0 +1,403 @@
+---
+/**
+ * Force-directed graph of notes. No dependency: a small simulation on a canvas.
+ * Scroll or the buttons zoom, dragging empty space pans, dragging a node moves it,
+ * and a click opens a tooltip with a link to that note. Expand fills the screen.
+ */
+interface Node {
+  id: string
+  title: string
+  href: string
+  group: string
+}
+interface Link {
+  source: string
+  target: string
+}
+interface Props {
+  nodes: Node[]
+  links: Link[]
+  /** Slug drawn in the center at the start (a note's own page). */
+  focus?: string
+}
+const { nodes, links, focus } = Astro.props
+const json = JSON.stringify({ nodes, links, focus: focus ?? null }).replace(/</g, '\\u003c')
+---
+{nodes.length > 0 && (
+  <section class="w-graph" data-graph data-pagefind-ignore>
+    <div class="w-graph-bar">
+      <span class="label">Graph</span>
+      <span class="w-graph-tools">
+        <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+        <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+        <button type="button" data-expand aria-expanded="false">Expand</button>
+      </span>
+    </div>
+    <div class="w-graph-stage" data-stage>
+      <canvas role="img" aria-label="Graph of notes. Drag empty space to pan, scroll to zoom, drag a note to move it, click a note for a link."></canvas>
+      <div class="w-graph-tip" data-tip hidden></div>
+    </div>
+    <script type="application/json" data-graph-data is:inline set:html={json} />
+  </section>
+)}
+<script>
+  const COLORS = {
+    about: '#7eb8a2',
+    concepts: '#d4a054',
+    events: '#d46a6a',
+    media: '#6a9ed4',
+    research: '#b07ad4',
+    projects: '#8fbf6a',
+  }
+  const GROUPS = {
+    about: 'About',
+    concepts: 'Concepts',
+    events: 'Events',
+    media: 'Media',
+    research: 'Research',
+    projects: 'Projects',
+  }
+
+  function boot(root) {
+    if (root.dataset.ready) return
+    root.dataset.ready = '1'
+    const data = JSON.parse(root.querySelector('[data-graph-data]').textContent)
+    const stage = root.querySelector('[data-stage]')
+    const canvas = stage.querySelector('canvas')
+    const tip = root.querySelector('[data-tip]')
+    const expandBtn = root.querySelector('[data-expand]')
+    const ctx = canvas.getContext('2d')
+    const focus = data.focus
+
+    const byId = new Map()
+    const nodes = data.nodes.map((n, i) => {
+      const count = data.nodes.length
+      const ang = (i / count) * Math.PI * 2
+      const ring = focus && n.id === focus ? 0 : 70 + (i % 8) * 16
+      const node = { ...n, x: Math.cos(ang) * ring, y: Math.sin(ang) * ring, vx: 0, vy: 0, pin: false }
+      byId.set(n.id, node)
+      return node
+    })
+    if (focus && byId.has(focus)) {
+      const others = nodes.filter((n) => n.id !== focus)
+      others.forEach((n, i) => {
+        const ang = (i / Math.max(1, others.length)) * Math.PI * 2
+        n.x = Math.cos(ang) * 130
+        n.y = Math.sin(ang) * 130
+      })
+      byId.get(focus).x = 0
+      byId.get(focus).y = 0
+    }
+    const links = data.links.map((l) => ({ a: byId.get(l.source), b: byId.get(l.target) })).filter((l) => l.a && l.b)
+
+    let scale = 1
+    let tx = 0
+    let ty = 0
+    let alpha = 1
+    let running = false
+    let adjusted = false
+    let touched = false
+    let settledFit = false
+    let hover = null
+    let mode = null
+    let down = null
+    let dragged = false
+    let active = null
+
+    function size() {
+      const r = stage.getBoundingClientRect()
+      return { w: r.width, h: r.height }
+    }
+    function resizeCanvas() {
+      const { w, h } = size()
+      const dpr = Math.min(2, devicePixelRatio || 1)
+      canvas.width = Math.max(1, Math.round(w * dpr))
+      canvas.height = Math.max(1, Math.round(h * dpr))
+    }
+    function fit() {
+      const { w, h } = size()
+      if (w < 10 || h < 10 || !nodes.length) return
+      const focusNode = focus && nodes.find((n) => n.id === focus)
+      const pad = 44
+      if (focusNode) {
+        let reach = 64
+        for (const n of nodes) reach = Math.max(reach, Math.hypot(n.x - focusNode.x, n.y - focusNode.y))
+        scale = Math.min(2.2, Math.max(0.2, Math.min((w - pad * 2) / (reach * 2), (h - pad * 2) / (reach * 2))))
+        tx = w / 2 - focusNode.x * scale
+        ty = h / 2 - focusNode.y * scale
+        return
+      }
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      for (const n of nodes) {
+        minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x)
+        minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y)
+      }
+      const bw = Math.max(48, maxX - minX)
+      const bh = Math.max(48, maxY - minY)
+      scale = Math.min(2.4, Math.max(0.15, Math.min((w - pad * 2) / bw, (h - pad * 2) / bh)))
+      tx = w / 2 - ((minX + maxX) / 2) * scale
+      ty = h / 2 - ((minY + maxY) / 2) * scale
+    }
+    function toWorld(sx, sy) {
+      return { x: (sx - tx) / scale, y: (sy - ty) / scale }
+    }
+    function hit(sx, sy) {
+      const w = toWorld(sx, sy)
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i]
+        if (Math.hypot(n.x - w.x, n.y - w.y) * scale < 14) return n
+      }
+      return null
+    }
+    function tick() {
+      for (const n of nodes) { n.vx = 0; n.vy = 0 }
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          let dx = nodes[j].x - nodes[i].x
+          let dy = nodes[j].y - nodes[i].y
+          let d2 = dx * dx + dy * dy
+          if (d2 < 36) d2 = 36
+          const d = Math.sqrt(d2)
+          const f = (alpha * 520) / d2
+          const fx = (dx / d) * f
+          const fy = (dy / d) * f
+          nodes[i].vx -= fx; nodes[i].vy -= fy
+          nodes[j].vx += fx; nodes[j].vy += fy
+        }
+      }
+      for (const l of links) {
+        let dx = l.b.x - l.a.x
+        let dy = l.b.y - l.a.y
+        const d = Math.hypot(dx, dy) || 1
+        const f = (d - 78) * 0.06 * alpha
+        const fx = (dx / d) * f
+        const fy = (dy / d) * f
+        l.a.vx += fx; l.a.vy += fy
+        l.b.vx -= fx; l.b.vy -= fy
+      }
+      for (const n of nodes) {
+        if (n.pin) { n.x = n.fx; n.y = n.fy; continue }
+        const pull = !adjusted && n.id === focus ? 0.18 : 0.015
+        n.vx += -n.x * pull * alpha
+        n.vy += -n.y * pull * alpha
+        n.vx *= 0.55
+        n.vy *= 0.55
+        n.x += n.vx
+        n.y += n.vy
+      }
+    }
+    function colors() {
+      const s = getComputedStyle(document.documentElement)
+      return {
+        ink: s.getPropertyValue('--primary').trim() || '#f0fdfa',
+        line: s.getPropertyValue('--midtone').trim() || '#8c8c8c',
+        font: s.getPropertyValue('--font-body').trim() || 'serif',
+      }
+    }
+    function draw() {
+      const { w, h } = size()
+      const dpr = Math.min(2, devicePixelRatio || 1)
+      const c = colors()
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, w, h)
+      ctx.save()
+      ctx.translate(tx, ty)
+      ctx.scale(scale, scale)
+      ctx.strokeStyle = c.line
+      ctx.globalAlpha = 0.4
+      ctx.lineWidth = 1 / scale
+      ctx.beginPath()
+      for (const l of links) {
+        ctx.moveTo(l.a.x, l.a.y)
+        ctx.lineTo(l.b.x, l.b.y)
+      }
+      ctx.stroke()
+      ctx.globalAlpha = 1
+      for (const n of nodes) {
+        const r = n.id === focus ? 7 : 4.5
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
+        ctx.fillStyle = COLORS[n.group] || c.ink
+        ctx.fill()
+        if (n.id === focus || n === hover) {
+          ctx.lineWidth = 1.5 / scale
+          ctx.strokeStyle = c.ink
+          ctx.stroke()
+        }
+      }
+      ctx.restore()
+      ctx.fillStyle = c.ink
+      ctx.font = `12px ${c.font}`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'bottom'
+      for (const n of nodes) {
+        const show = n === hover || n.id === focus || (scale >= 1.8 && nodes.length < 80)
+        if (!show) continue
+        const label = n.title.length > 46 ? n.title.slice(0, 44) + '…' : n.title
+        ctx.fillText(label, n.x * scale + tx, n.y * scale + ty - 10)
+      }
+    }
+    function wake(a) {
+      alpha = Math.max(alpha, a)
+      if (running) return
+      running = true
+      const loop = () => {
+        if (alpha > 0.02) {
+          tick()
+          alpha *= 0.985
+          if (!adjusted && !touched && !mode && !settledFit && alpha < 0.08) { fit(); settledFit = true }
+          draw()
+          requestAnimationFrame(loop)
+        } else {
+          running = false
+          if (!adjusted && !touched && !mode) fit()
+          draw()
+        }
+      }
+      requestAnimationFrame(loop)
+    }
+    function hideTip() { tip.hidden = true; tip.replaceChildren() }
+    function showTip(node, sx, sy) {
+      tip.hidden = false
+      tip.replaceChildren()
+      const title = document.createElement('p')
+      title.textContent = node.title
+      const group = document.createElement('p')
+      group.className = 'g'
+      group.textContent = GROUPS[node.group] || ''
+      const a = document.createElement('a')
+      a.href = node.href
+      a.textContent = 'View note'
+      tip.append(title, group, a)
+      let x = sx + 14
+      let y = sy + 14
+      tip.style.left = x + 'px'
+      tip.style.top = y + 'px'
+      const pad = 8
+      const tr = tip.getBoundingClientRect()
+      const br = stage.getBoundingClientRect()
+      if (tr.right > br.right - pad) x = sx - tr.width - 14
+      if (tr.bottom > br.bottom - pad) y = sy - tr.height - 14
+      tip.style.left = Math.max(pad, x) + 'px'
+      tip.style.top = Math.max(pad, y) + 'px'
+    }
+    function local(e) {
+      const r = stage.getBoundingClientRect()
+      return { sx: e.clientX - r.left, sy: e.clientY - r.top }
+    }
+    function zoomAt(factor, cx, cy) {
+      const next = Math.min(6, Math.max(0.12, scale * factor))
+      const k = next / scale
+      tx = cx - (cx - tx) * k
+      ty = cy - (cy - ty) * k
+      scale = next
+      adjusted = true
+      draw()
+    }
+    function setFull(on) {
+      root.classList.toggle('is-full', on)
+      document.documentElement.classList.toggle('w-graph-open', on)
+      expandBtn.textContent = on ? 'Close' : 'Expand'
+      expandBtn.setAttribute('aria-expanded', on ? 'true' : 'false')
+      adjusted = false
+      settledFit = false
+      requestAnimationFrame(() => { resizeCanvas(); fit(); draw() })
+    }
+
+    for (let i = 0; i < 160; i++) { alpha = Math.max(0.2, 1 - i / 160); tick() }
+    alpha = 0.45
+    resizeCanvas()
+    fit()
+    draw()
+    wake(0.45)
+
+    new ResizeObserver(() => {
+      resizeCanvas()
+      if (!adjusted) fit()
+      draw()
+    }).observe(stage)
+
+    stage.addEventListener('wheel', (e) => {
+      e.preventDefault()
+      const { sx, sy } = local(e)
+      zoomAt(Math.exp(-e.deltaY * 0.0012), sx, sy)
+    }, { passive: false })
+
+    root.querySelector('[data-zoom="in"]').addEventListener('click', () => {
+      const { w, h } = size()
+      zoomAt(1.25, w / 2, h / 2)
+    })
+    root.querySelector('[data-zoom="out"]').addEventListener('click', () => {
+      const { w, h } = size()
+      zoomAt(1 / 1.25, w / 2, h / 2)
+    })
+    expandBtn.addEventListener('click', () => setFull(!root.classList.contains('is-full')))
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && root.classList.contains('is-full')) setFull(false)
+    })
+
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('[data-tip]')) return
+      const { sx, sy } = local(e)
+      const n = hit(sx, sy)
+      mode = n ? 'node' : 'pan'
+      active = n
+      dragged = false
+      down = { x: e.clientX, y: e.clientY, tx, ty, nx: n && n.x, ny: n && n.y }
+      stage.setPointerCapture(e.pointerId)
+    })
+    stage.addEventListener('pointermove', (e) => {
+      const { sx, sy } = local(e)
+      if (!mode) {
+        const next = hit(sx, sy)
+        if (next !== hover) { hover = next; stage.style.cursor = next ? 'pointer' : 'grab'; if (!running) draw() }
+        return
+      }
+      const dx = e.clientX - down.x
+      const dy = e.clientY - down.y
+      if (dx * dx + dy * dy > 16) dragged = true
+      if (mode === 'pan' && dragged) {
+        adjusted = true
+        tx = down.tx + dx
+        ty = down.ty + dy
+        hideTip()
+        stage.style.cursor = 'grabbing'
+        draw()
+      }
+      if (mode === 'node' && dragged && active) {
+        touched = true
+        hideTip()
+        active.x = down.nx + dx / scale
+        active.y = down.ny + dy / scale
+        active.pin = true
+        active.fx = active.x
+        active.fy = active.y
+        stage.style.cursor = 'grabbing'
+        wake(0.4)
+      }
+    })
+    function endPointer(e) {
+      if (!mode) return
+      if (mode === 'node' && !dragged && active) {
+        const { sx, sy } = local(e)
+        showTip(active, sx, sy)
+      }
+      if (mode === 'pan' && !dragged) hideTip()
+      if (active) active.pin = false
+      mode = null
+      active = null
+      stage.style.cursor = 'grab'
+      try { stage.releasePointerCapture(e.pointerId) } catch {}
+    }
+    stage.addEventListener('pointerup', endPointer)
+    stage.addEventListener('pointercancel', endPointer)
+    stage.addEventListener('pointerleave', () => {
+      if (!mode && hover) { hover = null; if (!running) draw() }
+    })
+
+    new MutationObserver(() => draw()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => draw())
+  }
+
+  document.querySelectorAll('[data-graph]').forEach(boot)
+</script>

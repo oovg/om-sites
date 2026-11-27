@@ -1,6 +1,14 @@
 /**
  * Where each entry lives, and `[[slug|text]]` → URL on the right site. Backlinks.
+ *
+ * Cross-site links are written as the canonical URL from site.md. A small script on each site
+ * (`packages/ui/SiteLinks.astro`) retargets them, when the page is viewed, at the sibling
+ * deployment: localhost ports from each site's dev script, or the same host with the site name
+ * swapped (`hub.vercel.app` → `mediashop.vercel.app`). Production hosts are left as published.
  */
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { WORKSPACE } from './config.ts'
 import type { Entry, OuterMind } from './load.ts'
 import { notebookList } from './bespoke.ts'
 
@@ -14,14 +22,77 @@ export function siteIdOf(name: string): SiteId | undefined {
 }
 
 /**
- * Base URL of a site. From site.md, unless `OM_URL_<SITE>` is set (e.g. OM_URL_MEDIASHOP=http://localhost:4402),
- * so local previews link to each other.
+ * Base URL of a site. From site.md, unless `OM_URL_<SITE>` is set (e.g. OM_URL_MEDIASHOP=http://localhost:4402).
+ * Pages also retarget these in the browser; see `siteHosts`.
  */
 export function siteBase(om: OuterMind, site: SiteId): string {
   const env = process.env[`OM_URL_${site.toUpperCase()}`]
   if (env) return env.replace(/\/$/, '')
+  return canonicalOrigin(om, site)
+}
+
+/** URL published in site.md, without an `OM_URL_*` override. */
+export function canonicalOrigin(om: OuterMind, site: SiteId): string {
   const s = om.site?.data.sites.find((x) => siteIdOf(x.name) === site)
   return (s?.url ?? '').replace(/\/$/, '')
+}
+
+const devPorts = new Map<SiteId, number>()
+
+/** Port from `sites/<id>/package.json` `dev` script (`astro dev --port N`). 0 if it can't be read. */
+export function devPort(site: SiteId): number {
+  const cached = devPorts.get(site)
+  if (cached !== undefined) return cached
+  let port = 0
+  try {
+    const pkg = JSON.parse(readFileSync(join(WORKSPACE, 'sites', site, 'package.json'), 'utf8')) as {
+      scripts?: { dev?: string; preview?: string }
+    }
+    const m = (pkg.scripts?.dev ?? pkg.scripts?.preview ?? '').match(/--port(?:\s+|=)(\d+)/)
+    if (m) port = Number(m[1])
+  } catch {
+    port = 0
+  }
+  devPorts.set(site, port)
+  return port
+}
+
+export interface SiteHost {
+  /** Canonical origin from site.md, no trailing slash. */
+  origin: string
+  /** Local dev/preview port. */
+  port: number
+}
+
+/** What the browser needs to retarget a cross-site link at the deployment being viewed. */
+export function siteHosts(om: OuterMind): Record<SiteId, SiteHost> {
+  return Object.fromEntries(SITE_IDS.map((id) => [id, { origin: canonicalOrigin(om, id), port: devPort(id) }])) as Record<
+    SiteId,
+    SiteHost
+  >
+}
+
+/** True when `href` points at one of the four sites (its published host, or its local port). */
+export function isSiblingHref(om: OuterMind, href: string): boolean {
+  let url: URL
+  try {
+    url = new URL(href)
+  } catch {
+    return false
+  }
+  for (const id of SITE_IDS) {
+    const origin = canonicalOrigin(om, id)
+    if (origin) {
+      try {
+        if (new URL(origin).hostname === url.hostname) return true
+      } catch {
+        /* a bad site.md url just doesn't match */
+      }
+    }
+    const port = devPort(id)
+    if (port && (url.hostname === 'localhost' || url.hostname === '127.0.0.1') && url.port === String(port)) return true
+  }
+  return false
 }
 
 export function hasNotebooks(om: OuterMind): boolean {

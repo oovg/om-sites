@@ -4,21 +4,43 @@
  */
 import Base from '../layouts/Base.astro'
 import EntryList from '../components/EntryList.astro'
+import Graph from '../components/Graph.astro'
 import { entriesOf, formatShort, listAssets, splitSections, wikiPath, type Entry } from '@om/content'
 import {
-  backlinksOf, crumbs, dirOf, facts, folderHref, folderPages, type Folder, md, minutes, names, om, seenOn, toc, tree,
+  backlinksOf, crumbs, entryCrumbs, facts, folderHref, folderLabel, folderPages, type Folder, fullGraph, localGraph,
+  md, minutes, names, notePath, om, type SectionId, sectionCount, seenOn, toc, tree, wikiNotebooks, wikiSections,
 } from '../lib/wiki'
 
-type Props = { kind: 'home' } | { kind: 'folder'; path: string } | { kind: 'entry'; slug: string } | { kind: 'assets' }
+type Props =
+  | { kind: 'home' }
+  | { kind: 'folder'; path: string }
+  | { kind: 'entry'; slug: string }
+  | { kind: 'assets' }
+  | { kind: 'section'; id: SectionId }
 
 export function getStaticPaths() {
   const o = om()
-  return [
+  const pages: { params: { path: string | undefined }; props: Props }[] = [
     { params: { path: undefined }, props: { kind: 'home' } },
     { params: { path: 'assets' }, props: { kind: 'assets' } },
-    ...folderPages(o).map((f) => ({ params: { path: f.path }, props: { kind: 'folder', path: f.path } })),
-    ...o.entries.map((e) => ({ params: { path: wikiPath(e).slice(1) }, props: { kind: 'entry', slug: e.slug } })),
+    ...folderPages(o).map((f) => ({ params: { path: f.path }, props: { kind: 'folder' as const, path: f.path } })),
+    ...o.entries.map((e) => ({ params: { path: wikiPath(e).slice(1) }, props: { kind: 'entry' as const, slug: e.slug } })),
   ]
+  const taken = new Set(pages.map((p) => p.params.path).filter((p): p is string => !!p))
+  for (const n of wikiNotebooks(o)) {
+    if (o.bySlug.has(n.slug)) continue
+    const path = notePath(n).slice(1)
+    if (taken.has(path)) continue
+    taken.add(path)
+    pages.push({ params: { path }, props: { kind: 'entry', slug: n.slug } })
+  }
+  for (const s of wikiSections(o)) {
+    if (s.id !== 'about' && s.id !== 'research') continue
+    const path = s.href.replace(/^\//, '').replace(/\/$/, '')
+    if (taken.has(path)) continue
+    pages.push({ params: { path }, props: { kind: 'section', id: s.id } })
+  }
+  return pages
 }
 
 const o = om()
@@ -28,7 +50,8 @@ const count = (f: Folder): number => f.entries.length + (f.notebook ? 1 : 0) + f
 
 let entry: Entry | undefined
 let folder: Folder | undefined
-if (props.kind === 'entry') entry = o.bySlug.get(props.slug)
+const section = props.kind === 'section' ? wikiSections(o).find((s) => s.id === props.id) : undefined
+if (props.kind === 'entry') entry = o.bySlug.get(props.slug) ?? wikiNotebooks(o).find((n) => n.slug === props.slug)
 if (props.kind === 'folder') {
   const find = (f: Folder): Folder | undefined => (f.path === props.path ? f : f.folders.map(find).find(Boolean))
   folder = find(tree(o))
@@ -50,31 +73,41 @@ const sectionList =
   entry?.type === 'notebook'
     ? (entry as Entry<'notebook'>).data.sections.map((s) => o.bySlug.get(s)).filter((x): x is Entry => !!x)
     : []
-const current = entry ? wikiPath(entry) : folder ? `/${folder.path}` : props.kind === 'assets' ? '/assets' : '/'
-const title = entry?.data.title ?? (folder ? folder.path : props.kind === 'assets' ? 'assets' : undefined)
+const graph = fullGraph(o)
+const local = entry ? localGraph(entry.slug, graph) : undefined
+const onFile = !!entry && o.bySlug.has(entry.slug)
+const current = entry ? notePath(entry) : folder ? `/${folder.path}` : section ? section.href.replace(/\/$/, '') : props.kind === 'assets' ? '/assets' : '/'
+const title = entry?.data.title ?? section?.label ?? (folder ? folderLabel(folder, o) : props.kind === 'assets' ? 'assets' : undefined)
 ---
 <Base title={title} description={entry?.data.summary} current={current} right={props.kind === 'entry'}>
   {props.kind === 'home' && (
     <>
       <h1 class="w-h1 h" data-pagefind-meta="title">{n.wiki}</h1>
       {heroText.length > 0 && <div class="w-hero" set:html={nodesToHtml(heroText as any)} />}
+      <Graph nodes={graph.nodes} links={graph.links} />
       <div class="w-folders">
-        {tree(o).folders.map((f) => <a href={folderHref(f)}><span class="label">{f.name}</span><div class="n">{count(f)} entries</div></a>)}
-        <a href="/tags/"><span class="label">tags</span><div class="n">by tag</div></a>
-        <a href="/assets/"><span class="label">assets</span><div class="n">{listAssets(o).length} files</div></a>
+        {wikiSections(o).map((s) => <a href={s.href}><span class="label">{s.label}</span><div class="n">{sectionCount(s)} entries</div></a>)}
       </div>
-      <p class="w-raw w-muted">For language models: <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/index.json">index.json</a></p>
+      <p class="w-raw w-muted">For language models: <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/index.json">index.json</a> · <a href="/tags/">tags</a></p>
     </>
   )}
 
   {folder && (
     <>
-      <nav class="w-crumbs">{crumbs(folder.path, o).slice(0, -1).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{folder.name}</nav>
-      <h1 class="w-h1 h" data-pagefind-meta="title">{folder.name}</h1>
+      <nav class="w-crumbs">{crumbs(folder.path, o).slice(0, -1).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{folderLabel(folder, o)}</nav>
+      <h1 class="w-h1 h" data-pagefind-meta="title">{folderLabel(folder, o)}</h1>
       {folder.folders.length > 0 && (
         <div class="w-folders">{folder.folders.map((f) => <a href={folderHref(f)}><span class="label">{f.notebook ? f.notebook.data.title : f.name}</span><div class="n">{count(f)} entries</div></a>)}</div>
       )}
       <EntryList entries={folder.entries} />
+    </>
+  )}
+
+  {section && (
+    <>
+      <nav class="w-crumbs"><a href="/">Home</a><span>›</span>{section.label}</nav>
+      <h1 class="w-h1 h" data-pagefind-meta="title">{section.label}</h1>
+      {section.entries.length > 0 && <EntryList entries={section.entries} />}
     </>
   )}
 
@@ -88,7 +121,7 @@ const title = entry?.data.title ?? (folder ? folder.path : props.kind === 'asset
 
   {entry && (
     <article>
-      <nav class="w-crumbs">{crumbs(dirOf(entry), o).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{entry.data.title}</nav>
+      <nav class="w-crumbs">{entryCrumbs(entry, o).map((c) => <><a href={c.href}>{c.label}</a><span>›</span></>)}{entry.data.title}</nav>
       <h1 class="w-h1 h" data-pagefind-meta="title">{entry.data.title}</h1>
       <div class="w-meta">
         <span>{formatShort(entry.data.date)}</span>
@@ -120,15 +153,16 @@ const title = entry?.data.title ?? (folder ? folder.path : props.kind === 'asset
               <dd>{r.values.map((v) => <span>{v.href ? <a href={v.href}>{v.text}</a> : v.text}</span>)}</dd>
             </>
           ))}
-          <dt>file</dt><dd>public/{entry.file}</dd>
+          {onFile && <><dt>file</dt><dd>public/{entry.file}</dd></>}
         </dl>
-        <p class="w-raw"><a href={`${wikiPath(entry)}.md`}>Raw markdown</a></p>
+        {onFile && <p class="w-raw"><a href={`${notePath(entry)}.md`}>Raw markdown</a></p>}
       </section>
     </article>
   )}
 
   {entry && (
     <Fragment slot="right">
+      {local && <Graph nodes={local.nodes} links={local.links} focus={entry!.slug} />}
       {headings.length > 0 && (
         <section>
           <span class="label">Contents</span>
@@ -138,7 +172,7 @@ const title = entry?.data.title ?? (folder ? folder.path : props.kind === 'asset
       <section>
         <span class="label">Backlinks</span>
         {back.length ? (
-          <ul class="w-list">{back.map((b) => <li><a href={wikiPath(b)}>{b.data.title}</a></li>)}</ul>
+          <ul class="w-list">{back.map((b) => <li><a href={notePath(b)}>{b.data.title}</a></li>)}</ul>
         ) : (
           <p class="w-muted">No backlinks</p>
         )}

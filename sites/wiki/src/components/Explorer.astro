@@ -1,30 +1,50 @@
 ---
-/** Folder tree of public/ (the old wiki's Explorer), as nested <details>; the current page's folders are open. */
-import { type Folder, folderHref, tree, om } from '../lib/wiki'
-import { wikiPath } from '@om/content'
+/** The six wiki folders, as nested <details>. The folder that holds the current page is open. */
+import type { Entry } from '@om/content'
+import { type Folder, folderHref, notePath, wikiSections, om, type WikiSection } from '../lib/wiki'
 interface Props { current?: string }
 const { current = '' } = Astro.props
-const root = tree(om())
-const isOpen = (f: Folder) => current === `/${f.path}` || current.startsWith(`/${f.path}/`)
-const cur = (href: string) => (href.replace(/\/$/, '') === current.replace(/\/$/, '') ? { 'aria-current': 'page' as const } : {})
+const sections = wikiSections(om())
+const norm = (href: string) => href.replace(/\/$/, '') || '/'
+const cur = (href: string) => (norm(href) === norm(current) ? { 'aria-current': 'page' as const } : {})
+const entryHit = (e: Entry) => norm(notePath(e)) === norm(current)
+const folderHit = (f: Folder): boolean =>
+  norm(folderHref(f)) === norm(current) ||
+  (!!f.notebook && entryHit(f.notebook)) ||
+  f.entries.some(entryHit) ||
+  f.folders.some(folderHit)
+const sectionHit = (s: WikiSection) =>
+  norm(s.href) === norm(current) || s.entries.some(entryHit) || s.folders.some(folderHit)
 ---
 <section class="w-tree">
   <span class="label">Explorer</span>
   <ul>
-    {root.entries.map((e) => <li><a href={wikiPath(e)} {...cur(wikiPath(e))}>{e.data.title}</a></li>)}
-    {root.folders.map(function render(f: Folder): any {
-      return (
-        <li>
-          <details open={isOpen(f)}>
-            <summary><a href={folderHref(f)} {...cur(folderHref(f))}>{f.notebook ? f.notebook.data.title : f.name}</a></summary>
-            <ul>
-              {f.folders.map(render)}
-              {f.entries.map((e) => <li><a href={wikiPath(e)} {...cur(wikiPath(e))}>{e.data.title}</a></li>)}
-            </ul>
-          </details>
-        </li>
-      )
-    })}
-    <li><details open={current.startsWith('/assets')}><summary><a href="/assets/" {...cur('/assets/')}>assets</a></summary></details></li>
+    {sections.map((s) => (
+      <li>
+        <details open={sectionHit(s)}>
+          <summary><a href={s.href} {...cur(s.href)}>{s.label}</a></summary>
+          <ul>
+            {s.folders.map(function render(f: Folder): any {
+              const nested = f.folders.length + f.entries.length > 0
+              const name = f.notebook ? f.notebook.data.title : f.name
+              const href = folderHref(f)
+              if (!nested) return <li><a href={href} {...cur(href)}>{name}</a></li>
+              return (
+                <li>
+                  <details open={folderHit(f)}>
+                    <summary><a href={href} {...cur(href)}>{name}</a></summary>
+                    <ul>
+                      {f.folders.map(render)}
+                      {f.entries.map((e) => <li><a href={notePath(e)} {...cur(notePath(e))}>{e.data.title}</a></li>)}
+                    </ul>
+                  </details>
+                </li>
+              )
+            })}
+            {s.id !== 'research' && s.entries.map((e) => <li><a href={notePath(e)} {...cur(notePath(e))}>{e.data.title}</a></li>)}
+          </ul>
+        </details>
+      </li>
+    ))}
   </ul>
 </section>

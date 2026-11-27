@@ -1,6 +1,6 @@
 ---
 import SlotHeader from '../SlotHeader.astro'
-import { assetUrl, href, om, transmissions } from '../../lib/hub'
+import { href, om, opensNewTab, transmissionImage, transmissions } from '../../lib/hub'
 import { formatShort } from '@om/content'
 interface Props { heading: string; intro?: string }
 const { heading, intro } = Astro.props
@@ -9,13 +9,13 @@ const o = om()
 <SlotHeader heading={heading} intro={intro} id="transmissions" />
 <div class="rail-wrap">
   <div class="rail">
-    {transmissions(o).map((t) => {
+    {transmissions(o).slice(0, 8).map((t) => {
       const link = href(t, o)
       const book = t.data.collection ? o.bySlug.get(t.data.collection) : undefined
-      const img = assetUrl(t.data.image)
+      const img = transmissionImage(t, o)
       return (
         <div class="rail-cell tcell">
-          <a href={link} class="card tcard" {...(link.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>
+          <a href={link} class="card tcard" {...(opensNewTab(link, o) ? { target: '_blank', rel: 'noopener' } : {})}>
             {img && <div class="card-img"><img src={img} alt={t.data.title} loading="lazy" /></div>}
             <p class="tcard-date"><i>{formatShort(t.data.date)}</i></p>
             <h2 class="h">{t.data.title}</h2>

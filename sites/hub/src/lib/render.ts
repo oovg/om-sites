@@ -11,6 +11,27 @@ export function ctaify(html: string): string {
 
 export const html = (nodes: RootContent[]) => ctaify(nodesToHtml(nodes))
 
+/** A paragraph that is only a link to the hub's `/donate` page. */
+export function donateCtaHref(n: RootContent): string | undefined {
+  if (n.type !== 'paragraph') return undefined
+  const kids = n.children.filter((c) => !(c.type === 'text' && !c.value.trim()))
+  if (kids.length !== 1 || kids[0].type !== 'link') return undefined
+  const url = kids[0].url.trim()
+  return /^\/donate\/?$/.test(url) ? url : undefined
+}
+
+/** Drops donate-button paragraphs. The home page draws that button in the nonprofit band. */
+export function stripDonateCta(nodes: RootContent[]): { nodes: RootContent[]; href?: string } {
+  let href: string | undefined
+  const next = nodes.filter((n) => {
+    const found = donateCtaHref(n)
+    if (!found) return true
+    href = found
+    return false
+  })
+  return { nodes: next, href }
+}
+
 export function isLinkOnly(n: RootContent): boolean {
   if (n.type !== 'paragraph') return false
   const kids = n.children.filter((c) => !(c.type === 'text' && !c.value.trim()))

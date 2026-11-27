@@ -104,7 +104,8 @@ button { font: inherit; color: inherit; background: none; cursor: pointer; }
 .w-tree ul { list-style: none; }
 .w-tree ul ul { margin-left: 14px; padding-left: 10px; border-left: 1px solid var(--muted); }
 .w-tree li { margin: 4px 0; line-height: 1.35; }
-.w-tree summary { cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: 0.12em; }
+.w-tree summary { cursor: pointer; list-style: none; }
+.w-tree > ul > li > details > summary { font-family: var(--font-heading); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: 0.12em; }
 .w-tree summary::-webkit-details-marker { display: none; }
 .w-tree summary::before { content: '▸ '; color: var(--midtone); }
 .w-tree details[open] > summary::before { content: '▾ '; }
@@ -175,6 +176,24 @@ button { font: inherit; color: inherit; background: none; cursor: pointer; }
 .w-folders .n { font-size: 14px; color: var(--midtone); }
 .w-hero { font-size: 1.1rem; margin-top: 24px; }
 .w-hero p + p { margin-top: 1em; }
+
+/* Graph: a canvas simulation. Full screen covers the page. */
+.w-graph { margin-top: 28px; border: 1px solid var(--muted); background: var(--bg); user-select: none; }
+.w-side .w-graph { margin-top: 0; margin-bottom: 28px; }
+.w-graph-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--muted); }
+.w-graph-bar .label { margin: 0; }
+.w-graph-tools { display: flex; flex-shrink: 0; gap: 4px; }
+.w-graph-tools button { min-width: 28px; height: 28px; padding: 0 8px; border: 1px solid var(--muted); font-size: 14px; line-height: 1; }
+.w-graph-tools button:hover { border-color: var(--primary); }
+.w-graph-stage { position: relative; height: 320px; touch-action: none; cursor: grab; }
+.w-side .w-graph-stage { height: 220px; }
+.w-graph-stage canvas { width: 100%; height: 100%; display: block; }
+.w-graph.is-full { position: fixed; inset: 0; z-index: 50; margin: 0; display: flex; flex-direction: column; }
+.w-graph.is-full .w-graph-stage { flex: 1; height: auto; }
+html.w-graph-open { overflow: hidden; }
+.w-graph-tip { position: absolute; z-index: 2; max-width: 240px; background: var(--bg); border: 1px solid var(--primary); padding: 10px 12px; font-size: 14px; line-height: 1.35; }
+.w-graph-tip .g { font-family: var(--font-heading); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--midtone); margin-top: 4px; }
+.w-graph-tip a { display: inline-block; margin-top: 8px; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Footer (hub bottom line) ---------- */
 .w-ftr { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; border-top: 1px solid var(--primary); padding: 20px; font-size: var(--fs-small); }

@@ -12,5 +12,5 @@ const { date, title, by, shopHref, book } = Astro.props
   <div class="markdown"><h1>{title}</h1></div>
   {by && <p class="post-by"><i>by</i> {by}</p>}
   {book && <p class="post-by">From <a href={book.href}><i>{book.title}</i></a></p>}
-  {shopHref && <p class="post-shop"><a href={shopHref} target="_blank" rel="noopener">View in Media Shop</a></p>}
+  {shopHref && <p class="post-shop"><a href={shopHref}>View in Media Shop</a></p>}
 </div>

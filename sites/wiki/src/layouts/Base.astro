@@ -3,6 +3,8 @@ import '@om/ui/tokens.css'
 import '../styles/wiki.css'
 import Explorer from '../components/Explorer.astro'
 import { names, om } from '../lib/wiki'
+import { siteHosts } from '@om/content'
+import SiteLinks from '@om/ui/SiteLinks.astro'
 interface Props { title?: string; description?: string; current?: string; right?: boolean }
 const { title, description, current, right = true } = Astro.props
 const o = om()
@@ -71,5 +73,6 @@ const s = o.site?.data
       s.onerror = () => { document.getElementById('search').innerHTML = '<span class="w-search-off">Search is built with the site</span>' }
       document.head.appendChild(s)
     </script>
+    <SiteLinks site="wiki" hosts={siteHosts(o)} />
   </body>
 </html>

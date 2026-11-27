@@ -1,6 +1,7 @@
 ---
 import SlotHeader from '../SlotHeader.astro'
-import { href, mediaCover, mediaItems, om } from '../../lib/hub'
+import { href, mediaByline, mediaCover, mediaItems, om } from '../../lib/hub'
+import { formatShort } from '@om/content'
 interface Props { heading: string; intro?: string }
 const { heading, intro } = Astro.props
 const o = om()
@@ -10,16 +11,14 @@ const o = om()
   <div class="rail">
     {mediaItems(o).map((m) => {
       const cover = mediaCover(m, o)
+      const by = mediaByline(m, o)
       return (
         <div class="rail-cell mcell">
           <a href={href(m, o)} class="card mcard">
-            <h2 class="h">{m.data.title}</h2>
-            {(m.data.descriptor || m.data.role) && (
-              <p class="mcard-role">
-                {m.data.descriptor}{m.data.descriptor && m.data.role && ' - '}{m.data.role && <i>{m.data.role}</i>}
-              </p>
-            )}
             {cover && <div class="card-img"><img src={cover} alt={m.data.title} loading="lazy" /></div>}
+            <h2 class="h">{m.data.title}</h2>
+            <p class="mcard-meta"><i>{formatShort(m.data.date)}</i>{by && <> · {by}</>}</p>
+            {m.data.summary && <p class="mcard-sum">{m.data.summary}</p>}
           </a>
         </div>
       )

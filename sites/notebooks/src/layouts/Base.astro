@@ -3,10 +3,13 @@ import '@om/ui/tokens.css'
 import '../styles/notebooks.css'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
-import { names } from '../lib/nb'
+import { names, om } from '../lib/nb'
+import { siteHosts } from '@om/content'
+import SiteLinks from '@om/ui/SiteLinks.astro'
 interface Props { title?: string; description?: string; current?: string }
 const { title, description, current } = Astro.props
 const n = names()
+const o = om()
 ---
 <!doctype html>
 <html lang="en" data-site="notebooks">
@@ -20,5 +23,6 @@ const n = names()
     <Header current={current} />
     <slot />
     <Footer />
+    <SiteLinks site="notebooks" hosts={siteHosts(o)} />
   </body>
 </html>
